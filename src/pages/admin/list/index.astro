@@ -1,0 +1,11 @@
+---
+import Layout from "../../../layouts/Layout.astro";
+import ListContent from "../../../components/ui/admin/list";
+import { getRegistrations } from "../../../db/queries/registrations";
+
+const registrations = await getRegistrations();
+---
+
+<Layout title="List Pendaftar" description="List Pendaftar">
+  <ListContent client:only="react" data={registrations} />
+</Layout>

@@ -1,0 +1,1 @@
+ALTER TABLE `announcements` RENAME COLUMN `isImportant` TO `is_important`;

@@ -1,0 +1,12 @@
+---
+import Layout from "../../../../layouts/Layout.astro";
+import DetailPendaftar from "../../../../components/ui/admin/bio-data";
+import { getRegistrationByUserId } from "../../../../db/queries/registrations";
+
+const { userId } = Astro.params;
+const registration = userId ? await getRegistrationByUserId(userId) : null;
+---
+
+<Layout title="Detail Pendaftar" description="Detail Pendaftar">
+  <DetailPendaftar client:load data={registration} />
+</Layout>

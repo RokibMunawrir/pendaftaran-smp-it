@@ -1,0 +1,11 @@
+---
+import Layout from "../../../layouts/Layout.astro";
+import DocumentUpload from "../../../components/user/document";
+---
+
+<Layout
+  title="Upload Berkas"
+  description="Upload Berkas Pendaftaran Santri Baru"
+>
+  <DocumentUpload client:only="react" />
+</Layout>

@@ -1,0 +1,11 @@
+---
+import Layout from "../../../layouts/Layout.astro";
+import CostManagement from "../../../components/ui/admin/cost";
+import { getPayments, updatePayment } from "../../../db/queries/payment";
+
+const payments = await getPayments();
+---
+
+<Layout title="Biaya Pendaftaran" description="Pengaturan Biaya Pendaftaran">
+  <CostManagement client:only="react" payments={payments} updatePayment={updatePayment} />
+</Layout>

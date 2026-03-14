@@ -1,0 +1,12 @@
+---
+import Layout from "../../../layouts/Layout.astro";
+import Announcement from "../../../components/ui/admin/announcement";
+import { getAnnouncements } from "../../../db/queries/announcement";
+
+const announcements = await getAnnouncements()
+
+---
+
+<Layout title="Pengumuman" description="Pengumuman">
+  <Announcement client:only="react" announcements={announcements}/>
+</Layout>

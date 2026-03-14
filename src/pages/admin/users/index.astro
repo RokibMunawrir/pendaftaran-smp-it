@@ -1,0 +1,8 @@
+---
+import Layout from "../../../layouts/Layout.astro";
+import UsersContent from "../../../components/ui/admin/users";
+---
+
+<Layout title="Users" description="Manajemen Users">
+  <UsersContent client:only="react" />
+</Layout>
