@@ -4,13 +4,15 @@ const description = Astro.props.description || "Pendaftaran Santri Online";
 ---
 
 <!doctype html>
-<html lang="en" data-theme="cupcake">
+<html lang="en">
   <head>
     <script is:inline>
-      (function () {
-        var theme = localStorage.getItem("theme") || "cupcake";
+      const setTheme = () => {
+        const theme = localStorage.getItem("theme") || "cupcake";
         document.documentElement.setAttribute("data-theme", theme);
-      })();
+      };
+      setTheme();
+      document.addEventListener("astro:after-swap", setTheme);
     </script>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width" />

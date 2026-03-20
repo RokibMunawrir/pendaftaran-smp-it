@@ -1,13 +1,19 @@
 ---
 import Layout from "../../../layouts/Layout.astro";
-import SettingWebContent, { 
-  type LandingPageData,
-  
-} from "../../../components/ui/admin/setting-web";
+import SettingWebContent, { type LandingPageData } from "../../../components/ui/admin/setting-web";
 import db from "../../../db";
 import { settings } from "../../../db/schema/settings";
+import { auth } from "../../../lib/auth";
 
 export const prerender = false;
+
+const session = await auth.api.getSession({
+  headers: Astro.request.headers,
+});
+
+if (!session) {
+  return Astro.redirect("/login");
+}
 
 let initialData: LandingPageData | null = null;
 try {
@@ -40,6 +46,10 @@ try {
       features: parseJson(s.features) || [],
       agenda: parseJson(s.agenda) || [],
       biaya: parseJson(s.biaya) || [],
+      biayaBankName: s.biayaBankName || "",
+      biayaAccountNumber: s.biayaAccountNumber || "",
+      biayaAccountName: s.biayaAccountName || "",
+      biayaInstruction: s.biayaInstruction || "",
       faq: parseJson(s.faq) || [],
       contact: {
         address: s.contactAddress || "",

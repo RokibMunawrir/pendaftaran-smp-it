@@ -14,16 +14,7 @@ interface Pendaftar {
   registeredAt: Date | null;
 }
 
-const statusBadge: Record<string, string> = {
-  Diverifikasi: "badge-success",
-  VERIFIED: "badge-success",
-  Draft: "badge-warning",
-  DRAFT: "badge-warning",
-  Ditolak: "badge-error",
-  REJECTED: "badge-error",
-  Menunggu: "badge-info",
-  PENDING: "badge-info",
-};
+import { getStatusBadge } from "../../../lib/utils/status";
 
 const entriesOptions = [5, 10, 25, 50];
 
@@ -142,7 +133,7 @@ export default function ListContent({ data }: { data: Pendaftar[] }) {
                         <span className="badge badge-ghost badge-sm">{p.program}</span>
                       </td>
                       <td>
-                        <span className={`badge badge-sm ${p.status ? statusBadge[p.status] : "badge-ghost"}`}>{p.status || "Unknown"}</span>
+                        <span className={`badge badge-sm ${getStatusBadge(p.status)}`}>{p.status || "Unknown"}</span>
                       </td>
                       <td>
                         <a href={`/admin/list/detail/${p.userId}`} className="btn btn-ghost btn-xs">detail</a>

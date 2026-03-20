@@ -1,14 +1,60 @@
 import { useState } from 'react';
+import { z } from 'zod';
+import { auth } from "../../lib/client-auth";
+
+const forgotPasswordSchema = z.object({
+  email: z.string().email('Format email tidak valid'),
+});
+
+type ForgotPasswordFormData = z.infer<typeof forgotPasswordSchema>;
 
 export default function ForgotPassword() {
   const [email, setEmail] = useState('');
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState('');
+  const [fieldErrors, setFieldErrors] = useState<Partial<Record<keyof ForgotPasswordFormData, string>>>({});
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // TODO: Implement forgot password logic (e.g. API call to send reset email)
-    console.log("Forgot password requested for:", email);
-    setIsSubmitted(true);
+    setError('');
+    setIsLoading(true);
+    setFieldErrors({});
+
+    const result = forgotPasswordSchema.safeParse({
+      email,
+    });
+
+    if (!result.success) {
+      const formattedErrors: Partial<Record<keyof ForgotPasswordFormData, string>> = {};
+      result.error.issues.forEach((issue) => {
+        if (issue.path[0]) {
+          formattedErrors[issue.path[0] as keyof ForgotPasswordFormData] = issue.message;
+        }
+      });
+      setFieldErrors(formattedErrors);
+      setIsLoading(false);
+      return;
+    }
+
+    try {
+      const { data, error: authError } = await auth.requestPasswordReset({
+        email: result.data.email,
+        redirectTo: "/reset-password",
+      });
+
+      if (authError) {
+        setError(authError.message || "Gagal mengirim permintaan reset. Silakan coba lagi.");
+        setIsLoading(false);
+        return;
+      }
+
+      setIsSubmitted(true);
+    } catch (err: any) {
+      setError("Terjadi kesalahan sistem. Silakan coba beberapa saat lagi.");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -122,39 +168,58 @@ export default function ForgotPassword() {
                  </button>
                </div>
             ) : (
-                <form onSubmit={handleSubmit} className="space-y-6">
-                
-                {/* Email Field */}
-                <div className="form-control w-full">
-                    <label className="label pt-0">
-                    <span className="label-text font-semibold text-base-content/80">Alamat Email</span>
-                    </label>
-                    <div className="relative">
-                    <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-base-content/40">
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="w-5 h-5">
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75" />
-                        </svg>
+                <>
+                  {error && (
+                    <div className="alert alert-error mb-4 rounded-xl shadow-sm border-none bg-error/10 text-error flex items-center gap-3">
+                      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" className="stroke-current shrink-0 w-6 h-6"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                      <span className="text-sm font-semibold">{error}</span>
                     </div>
-                    <input 
-                        type="email" 
-                        placeholder="Contoh: santri@email.com" 
-                        className="input input-bordered w-full pl-11 bg-base-200/50 focus:bg-base-100 focus:border-primary transition-colors focus:ring-1 focus:ring-primary/50 rounded-xl"
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                        required
-                    />
-                    </div>
-                </div>
+                  )}
 
-                {/* Submit Button */}
-                <button 
-                    type="submit" 
-                    className="btn btn-primary w-full rounded-xl text-primary-content hover:shadow-lg hover:shadow-primary/30 transition-all font-bold text-base mt-2"
-                >
-                    Kirim Tautan Reset
-                </button>
-                
-                </form>
+                  <form onSubmit={handleSubmit} className="space-y-6">
+                  
+                  {/* Email Field */}
+                  <div className="form-control w-full">
+                      <label className="label pt-0">
+                      <span className="label-text font-semibold text-base-content/80">Alamat Email</span>
+                      </label>
+                      <div className="relative">
+                      <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-base-content/40">
+                          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="w-5 h-5">
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75" />
+                          </svg>
+                      </div>
+                      <input 
+                          type="email" 
+                          placeholder="Contoh: santri@email.com" 
+                          className="input input-bordered w-full pl-11 bg-base-200/50 focus:bg-base-100 focus:border-primary transition-colors focus:ring-1 focus:ring-primary/50 rounded-xl"
+                          value={email}
+                          onChange={(e) => setEmail(e.target.value)}
+                          required
+                      />
+                      </div>
+                      {fieldErrors.email && (
+                        <label className="label py-1">
+                          <span className="label-text-alt text-error font-medium">{fieldErrors.email}</span>
+                        </label>
+                      )}
+                  </div>
+
+                  {/* Submit Button */}
+                  <button 
+                      type="submit" 
+                      disabled={isLoading}
+                      className="btn btn-primary w-full rounded-xl text-primary-content hover:shadow-lg hover:shadow-primary/30 transition-all font-bold text-base mt-2"
+                  >
+                      {isLoading ? (
+                        <span className="loading loading-spinner loading-sm"></span>
+                      ) : (
+                        "Kirim Tautan Reset"
+                      )}
+                  </button>
+                  
+                  </form>
+                </>
             )}
 
             

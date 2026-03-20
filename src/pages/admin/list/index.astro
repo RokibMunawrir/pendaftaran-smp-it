@@ -2,6 +2,15 @@
 import Layout from "../../../layouts/Layout.astro";
 import ListContent from "../../../components/ui/admin/list";
 import { getRegistrations } from "../../../db/queries/registrations";
+import { auth } from "../../../lib/auth";
+
+const session = await auth.api.getSession({
+  headers: Astro.request.headers,
+});
+
+if (!session) {
+  return Astro.redirect("/login");
+}
 
 const registrations = await getRegistrations();
 ---

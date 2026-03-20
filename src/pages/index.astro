@@ -21,8 +21,12 @@ try {
   if (setting && setting.length > 0) {
     const s = setting[0];
     const parseJson = (val: any) => {
-      if (typeof val === 'string') {
-        try { return JSON.parse(val); } catch (e) { return null; }
+      if (typeof val === "string") {
+        try {
+          return JSON.parse(val);
+        } catch (e) {
+          return null;
+        }
       }
       return val;
     };
@@ -60,19 +64,25 @@ try {
         whatsapp: s.socialWhatsapp || "",
       },
       footer: s.footer || "",
-      announcements: []
+      announcements: [],
     };
 
-    const news = await db.select().from(announcementsTable)
+    const news = await db
+      .select()
+      .from(announcementsTable)
       .where(eq(announcementsTable.isPublished, true))
       .orderBy(desc(announcementsTable.createdAt));
-    
-    webData.announcements = news.map(a => ({
+
+    webData.announcements = news.map((a) => ({
       id: a.id,
       title: a.title,
       content: a.content,
-      date: new Date(a.createdAt).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' }),
-      isImportant: a.isImportant
+      date: new Date(a.createdAt).toLocaleDateString("id-ID", {
+        day: "2-digit",
+        month: "short",
+        year: "numeric",
+      }),
+      isImportant: a.isImportant,
     }));
   }
 } catch (error) {

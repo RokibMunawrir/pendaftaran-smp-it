@@ -1,69 +1,207 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import NavbarUser from '../ui/navbar-user';
 import TimelineProgress, { type TimelineStep } from '../ui/timeline-progress';
+import { z } from 'zod';
+import { toTitleCase } from '../../lib/utils/string';
 
-export default function Biodata() {
+const biodataSchema = z.object({
+  // Data Pribadi
+  namaLengkap: z.string().min(1, 'Nama lengkap wajib diisi'),
+  nik: z.string().length(16, 'NIK harus 16 digit'),
+  nisn: z.string().min(1, 'NISN wajib diisi'),
+  tempatLahir: z.string().min(1, 'Tempat lahir wajib diisi'),
+  tanggalLahir: z.string().min(1, 'Tanggal lahir wajib diisi'),
+  jenisKelamin: z.string().min(1, 'Jenis kelamin wajib dipilih'),
+  agama: z.string().min(1, 'Agama wajib diisi'),
+  hobi: z.string().optional(),
+  citaCita: z.string().optional(),
+  
+  // Data Orang Tua
+  namaAyah: z.string().min(1, 'Nama ayah wajib diisi'),
+  pekerjaanAyah: z.string().min(1, 'Pekerjaan ayah wajib dipilih'),
+  penghasilanAyah: z.string().min(1, 'Penghasilan ayah wajib dipilih'),
+  namaIbu: z.string().min(1, 'Nama ibu wajib diisi'),
+  pekerjaanIbu: z.string().min(1, 'Pekerjaan ibu wajib dipilih'),
+  penghasilanIbu: z.string().min(1, 'Penghasilan ibu wajib dipilih'),
+  noTelpOrtu: z.string().min(10, 'Nomor telepon minimal 10 digit').max(13, 'Nomor telepon maksimal 13 digit'),
+
+  // Alamat & Sekolah
+  alamatLengkap: z.string().min(1, 'Alamat lengkap wajib diisi'),
+  provinsi: z.string().min(1, 'Provinsi wajib diisi'),
+  kabupaten: z.string().min(1, 'Kabupaten/Kota wajib diisi'),
+  kecamatan: z.string().min(1, 'Kecamatan wajib diisi'),
+  asalSekolah: z.string().min(1, 'Asal sekolah wajib diisi'),
+  npsnSekolahAsal: z.string().length(8, 'NPSN harus 8 digit').optional().or(z.literal('')),
+  program: z.string().min(1, 'Program wajib diisi'),
+});
+
+type BiodataFormData = z.infer<typeof biodataSchema>;
+
+export default function Biodata({ 
+  userId, 
+  initialData = null,
+  user = { name: 'User', registrationNumber: null },
+  steps = [],
+  programs = []
+}: { 
+  userId: string;
+  initialData?: any;
+  user?: { name: string; registrationNumber: string | null };
+  steps?: TimelineStep[];
+  programs?: { id: string; name: string }[];
+}) {
   const [activeTab, setActiveTab] = useState('pribadi');
-
-  // Simulated user data
-  const user = {
-    name: 'Ahmad Rafiqi',
-    registrationNumber: 'PPDB-2026-08921',
-  };
-
-  const steps: TimelineStep[] = [
-    { title: 'Daftar Akun', description: 'Akun berhasil dibuat', status: 'completed', href: '/user/dashboard' },
-    { title: 'Lengkapi Biodata', description: 'Isi form data diri santri', status: 'current', href: '/user/biodata' },
-    { title: 'Pembayaran', description: 'Bayar biaya pendaftaran', status: 'upcoming', href: '#' },
-    { title: 'Upload Berkas', description: 'KK, Akta Kelahiran, dll', status: 'upcoming', href: '#' },
-    { title: 'Tes & Wawancara', description: 'Tes masuk pondok', status: 'upcoming', href: '#' }
-  ];
+  const [fieldErrors, setFieldErrors] = useState<Partial<Record<keyof BiodataFormData, string>>>({});
+  const [isSaving, setIsSaving] = useState(false);
+  const [notif, setNotif] = useState<{ open: boolean; message: string; variant: "success" | "error" }>({
+    open: false,
+    message: "",
+    variant: "success",
+  });
 
   // Form state
   const [formData, setFormData] = useState({
     // Data Pribadi
-    namaLengkap: '',
-    nik: '',
-    nisn: '',
-    tempatLahir: '',
+    namaLengkap: user?.name || initialData?.name || initialData?.namaLengkap || '', 
+    nik: initialData?.nik || '',
+    nisn: initialData?.nisn || '',
+    tempatLahir: initialData?.placeOfBirth || initialData?.place_of_birth || initialData?.tempatLahir || '',
     tanggalLahir: '',
-    jenisKelamin: '',
-    agama: '',
-    hobi: '',
-    citaCita: '',
+    jenisKelamin: initialData?.gender || initialData?.jenisKelamin || '',
+    agama: initialData?.religion || initialData?.agama || 'Islam',
+    hobi: initialData?.hobby || initialData?.hobi || '',
+    citaCita: initialData?.ambition || initialData?.citaCita || initialData?.ambition || '',
     
     // Data Orang Tua
-    namaAyah: '',
-    pekerjaanAyah: '',
-    penghasilanAyah: '',
-    namaIbu: '',
-    pekerjaanIbu: '',
-    penghasilanIbu: '',
-    noTelpOrtu: '',
+    namaAyah: initialData?.fatherName || initialData?.father_name || initialData?.namaAyah || '',
+    pekerjaanAyah: initialData?.fatherJob || initialData?.father_job || initialData?.pekerjaanAyah || '',
+    penghasilanAyah: initialData?.fatherIncome || initialData?.father_income || initialData?.penghasilanAyah || '',
+    namaIbu: initialData?.motherName || initialData?.mother_name || initialData?.namaIbu || '',
+    pekerjaanIbu: initialData?.motherJob || initialData?.mother_job || initialData?.pekerjaanIbu || '',
+    penghasilanIbu: initialData?.motherIncome || initialData?.mother_income || initialData?.penghasilanIbu || '',
+    noTelpOrtu: initialData?.parentPhone || initialData?.parent_phone || initialData?.noTelpOrtu || '',
 
     // Alamat & Sekolah
-    alamatLengkap: '',
-    provinsi: '',
-    kabupaten: '',
-    kecamatan: '',
-    asalSekolah: '',
-    npsnSekolahAsal: '',
-    program: '',
+    alamatLengkap: initialData?.address || initialData?.alamatLengkap || '',
+    provinsi: initialData?.province || initialData?.provinsi || '',
+    kabupaten: initialData?.city || initialData?.kabupaten || '',
+    kecamatan: initialData?.district || initialData?.kecamatan || '',
+    asalSekolah: initialData?.previousSchool || initialData?.previous_school || initialData?.asalSekolah || '',
+    npsnSekolahAsal: initialData?.originSchoolNpsn || initialData?.origin_school_npsn || initialData?.npsnSekolahAsal || '',
+    program: initialData?.program || '',
   });
+
+  // Keep state in sync with props if they change
+  useEffect(() => {
+    if (initialData || user) {
+      const parseDate = (d: any) => {
+        if (!d) return '';
+        try {
+          const date = new Date(d);
+          return isNaN(date.getTime()) ? '' : date.toISOString().split('T')[0];
+        } catch (e) {
+          return '';
+        }
+      };
+
+      setFormData((prev) => ({
+        ...prev,
+        namaLengkap: user?.name || initialData?.name || initialData?.namaLengkap || prev.namaLengkap,
+        nik: initialData?.nik ?? prev.nik,
+        nisn: initialData?.nisn ?? prev.nisn,
+        tempatLahir: initialData?.placeOfBirth || initialData?.place_of_birth || initialData?.tempatLahir || prev.tempatLahir,
+        tanggalLahir: parseDate(initialData?.dateOfBirth) || parseDate(initialData?.date_of_birth) || parseDate(initialData?.tanggalLahir) || prev.tanggalLahir,
+        jenisKelamin: initialData?.gender || initialData?.jenisKelamin || prev.jenisKelamin,
+        agama: initialData?.religion || initialData?.agama || prev.agama,
+        hobi: initialData?.hobby || initialData?.hobi || prev.hobi,
+        citaCita: initialData?.ambition || initialData?.citaCita || prev.citaCita,
+        namaAyah: initialData?.fatherName || initialData?.father_name || initialData?.namaAyah || prev.namaAyah,
+        pekerjaanAyah: initialData?.fatherJob || initialData?.father_job || initialData?.pekerjaanAyah || prev.pekerjaanAyah,
+        penghasilanAyah: initialData?.fatherIncome || initialData?.father_income || initialData?.penghasilanAyah || prev.penghasilanAyah,
+        namaIbu: initialData?.motherName || initialData?.mother_name || initialData?.namaIbu || prev.namaIbu,
+        pekerjaanIbu: initialData?.motherJob || initialData?.mother_job || initialData?.pekerjaanIbu || prev.pekerjaanIbu,
+        penghasilanIbu: initialData?.motherIncome || initialData?.mother_income || initialData?.penghasilanIbu || prev.penghasilanIbu,
+        noTelpOrtu: initialData?.parentPhone || initialData?.parent_phone || initialData?.noTelpOrtu || prev.noTelpOrtu,
+        alamatLengkap: initialData?.address || initialData?.alamatLengkap || prev.alamatLengkap,
+        provinsi: initialData?.province || initialData?.provinsi || prev.provinsi,
+        kabupaten: initialData?.city || initialData?.kabupaten || prev.kabupaten,
+        kecamatan: initialData?.district || initialData?.kecamatan || prev.kecamatan,
+        asalSekolah: initialData?.previousSchool || initialData?.previous_school || initialData?.asalSekolah || prev.asalSekolah,
+        npsnSekolahAsal: initialData?.originSchoolNpsn || initialData?.origin_school_npsn || initialData?.npsnSekolahAsal || prev.npsnSekolahAsal,
+        program: initialData?.program || prev.program,
+      }));
+    }
+  }, [initialData, user]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
+    let finalValue = value;
+    
+    if (['namaLengkap', 'namaAyah', 'namaIbu'].includes(name)) {
+      finalValue = toTitleCase(value);
+    }
+
     setFormData((prev) => ({
       ...prev,
-      [name]: value,
+      [name]: finalValue,
     }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    console.log("Submitting biodata:", formData);
-    // TODO: Send data to API
-    alert('Data Berhasil Disimpan!');
+  const handleSubmit = async (e?: React.FormEvent, isDraft: boolean = false) => {
+    if (e) e.preventDefault();
+    setFieldErrors({});
+
+    if (!isDraft) {
+      const result = biodataSchema.safeParse(formData);
+
+      if (!result.success) {
+        const formattedErrors: Partial<Record<keyof BiodataFormData, string>> = {};
+        result.error.issues.forEach((issue) => {
+          if (issue.path[0]) {
+            formattedErrors[issue.path[0] as keyof BiodataFormData] = issue.message;
+          }
+        });
+        setFieldErrors(formattedErrors);
+        
+        const firstErrorPath = result.error.issues[0].path[0] as string;
+        if (['namaLengkap', 'nik', 'nisn', 'tempatLahir', 'tanggalLahir', 'jenisKelamin', 'agama', 'hobi', 'citaCita'].includes(firstErrorPath)) {
+          setActiveTab('pribadi');
+        } else if (['namaAyah', 'pekerjaanAyah', 'penghasilanAyah', 'namaIbu', 'pekerjaanIbu', 'penghasilanIbu', 'noTelpOrtu'].includes(firstErrorPath)) {
+          setActiveTab('ortu');
+        } else if (['alamatLengkap', 'provinsi', 'kabupaten', 'kecamatan', 'asalSekolah', 'npsnSekolahAsal'].includes(firstErrorPath)) {
+          setActiveTab('alamat');
+        } else if (['program'].includes(firstErrorPath)) {
+          setActiveTab('program');
+        }
+        
+        return;
+      }
+    }
+
+    setIsSaving(true);
+    try {
+      const response = await fetch('/api/user/profile', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ...formData, userId }),
+      });
+
+      if (response.ok) {
+        setNotif({ open: true, message: isDraft ? 'Draf Berhasil Disimpan!' : 'Data Berhasil Disimpan!', variant: 'success' });
+        // Redirect to dashboard after success
+        setTimeout(() => {
+          window.location.href = '/user/dashboard';
+        }, 1500);
+      } else {
+        const err = await response.json();
+        throw new Error(err.error || 'Gagal menyimpan data');
+      }
+    } catch (error: any) {
+      setNotif({ open: true, message: error.message, variant: 'error' });
+    } finally {
+      setIsSaving(true);
+      setTimeout(() => setIsSaving(false), 500);
+    }
   };
 
   return (
@@ -147,16 +285,31 @@ export default function Biodata() {
               <div className="form-control w-full">
                 <label className="label pt-0"><span className="label-text font-semibold">Nama Lengkap</span></label>
                 <input type="text" name="namaLengkap" value={formData.namaLengkap} onChange={handleChange} placeholder="Sesuai Akta Kelahiran/KK" className="input input-bordered focus:border-primary w-full bg-base-200/30" required />
+                {fieldErrors.namaLengkap && (
+                  <label className="label py-1">
+                    <span className="label-text-alt text-error font-medium">{fieldErrors.namaLengkap}</span>
+                  </label>
+                )}
               </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <div className="form-control w-full">
                   <label className="label pt-0"><span className="label-text font-semibold">NIK</span></label>
                   <input type="text" name="nik" value={formData.nik} onChange={handleChange} placeholder="16 Digit NIK" maxLength={16} className="input input-bordered focus:border-primary w-full bg-base-200/30" required />
+                  {fieldErrors.nik && (
+                    <label className="label py-1">
+                      <span className="label-text-alt text-error font-medium">{fieldErrors.nik}</span>
+                    </label>
+                  )}
                 </div>
                 <div className="form-control w-full">
                   <label className="label pt-0"><span className="label-text font-semibold">NISN</span></label>
                   <input type="text" name="nisn" value={formData.nisn} onChange={handleChange} placeholder="Nomor Induk Siswa" className="input input-bordered focus:border-primary w-full bg-base-200/30" required />
+                  {fieldErrors.nisn && (
+                    <label className="label py-1">
+                      <span className="label-text-alt text-error font-medium">{fieldErrors.nisn}</span>
+                    </label>
+                  )}
                 </div>
               </div>
 
@@ -164,10 +317,20 @@ export default function Biodata() {
                 <div className="form-control w-full">
                   <label className="label pt-0"><span className="label-text font-semibold">Tempat Lahir</span></label>
                   <input type="text" name="tempatLahir" value={formData.tempatLahir} onChange={handleChange} placeholder="Kota/Kab" className="input input-bordered focus:border-primary w-full bg-base-200/30" required />
+                  {fieldErrors.tempatLahir && (
+                    <label className="label py-1">
+                      <span className="label-text-alt text-error font-medium">{fieldErrors.tempatLahir}</span>
+                    </label>
+                  )}
                 </div>
                 <div className="form-control w-full">
                   <label className="label pt-0"><span className="label-text font-semibold">Tanggal Lahir</span></label>
                   <input type="date" name="tanggalLahir" value={formData.tanggalLahir} onChange={handleChange} className="input input-bordered focus:border-primary w-full bg-base-200/30" required />
+                  {fieldErrors.tanggalLahir && (
+                    <label className="label py-1">
+                      <span className="label-text-alt text-error font-medium">{fieldErrors.tanggalLahir}</span>
+                    </label>
+                  )}
                 </div>
               </div>
 
@@ -179,10 +342,15 @@ export default function Biodata() {
                     <option value="L">Laki-Laki (Putra)</option>
                     <option value="P">Perempuan (Putri)</option>
                   </select>
+                  {fieldErrors.jenisKelamin && (
+                    <label className="label py-1">
+                      <span className="label-text-alt text-error font-medium">{fieldErrors.jenisKelamin}</span>
+                    </label>
+                  )}
                 </div>
                 <div className="form-control w-full">
                   <label className="label pt-0"><span className="label-text font-semibold">Agama</span></label>
-                  <input type="text" name="agama" value="Islam" readOnly className="input input-bordered w-full bg-base-200/60 opacity-80 cursor-not-allowed" />
+                  <input type="text" name="agama" value={formData.agama} readOnly className="input input-bordered w-full bg-base-200/60 opacity-80 cursor-not-allowed" />
                 </div>
               </div>
 
@@ -218,6 +386,11 @@ export default function Biodata() {
                 <div className="form-control w-full">
                   <label className="label pt-0"><span className="label-text font-semibold">Nama Lengkap Ayah</span></label>
                   <input type="text" name="namaAyah" value={formData.namaAyah} onChange={handleChange} placeholder="Sesuai KTP" className="input input-bordered focus:border-primary w-full bg-white dark:bg-base-100" />
+                  {fieldErrors.namaAyah && (
+                    <label className="label py-1">
+                      <span className="label-text-alt text-error font-medium">{fieldErrors.namaAyah}</span>
+                    </label>
+                  )}
                 </div>
                 <div className="form-control w-full">
                   <label className="label pt-0"><span className="label-text font-semibold">Pekerjaan Ayah</span></label>
@@ -230,6 +403,11 @@ export default function Biodata() {
                     <option value="Petani/Nelayan">Petani / Nelayan</option>
                     <option value="Lainnya">Lainnya</option>
                   </select>
+                  {fieldErrors.pekerjaanAyah && (
+                    <label className="label py-1">
+                      <span className="label-text-alt text-error font-medium">{fieldErrors.pekerjaanAyah}</span>
+                    </label>
+                  )}
                 </div>
                 <div className="form-control w-full">
                   <label className="label pt-0"><span className="label-text font-semibold">Penghasilan Per Bulan</span></label>
@@ -240,6 +418,11 @@ export default function Biodata() {
                     <option value="3-5jt">Rp 3.000.000 - Rp 5.000.000</option>
                     <option value="> 5jt">Lebih dari Rp 5.000.000</option>
                   </select>
+                  {fieldErrors.penghasilanAyah && (
+                    <label className="label py-1">
+                      <span className="label-text-alt text-error font-medium">{fieldErrors.penghasilanAyah}</span>
+                    </label>
+                  )}
                 </div>
               </div>
 
@@ -252,6 +435,11 @@ export default function Biodata() {
                 <div className="form-control w-full">
                   <label className="label pt-0"><span className="label-text font-semibold">Nama Lengkap Ibu</span></label>
                   <input type="text" name="namaIbu" value={formData.namaIbu} onChange={handleChange} placeholder="Sesuai KTP" className="input input-bordered focus:border-secondary w-full bg-white dark:bg-base-100" />
+                  {fieldErrors.namaIbu && (
+                    <label className="label py-1">
+                      <span className="label-text-alt text-error font-medium">{fieldErrors.namaIbu}</span>
+                    </label>
+                  )}
                 </div>
                 <div className="form-control w-full">
                   <label className="label pt-0"><span className="label-text font-semibold">Pekerjaan Ibu</span></label>
@@ -263,6 +451,11 @@ export default function Biodata() {
                     <option value="Wiraswasta">Wiraswasta / Pengusaha</option>
                     <option value="Lainnya">Lainnya</option>
                   </select>
+                  {fieldErrors.pekerjaanIbu && (
+                    <label className="label py-1">
+                      <span className="label-text-alt text-error font-medium">{fieldErrors.pekerjaanIbu}</span>
+                    </label>
+                  )}
                 </div>
                 <div className="form-control w-full">
                   <label className="label pt-0"><span className="label-text font-semibold">Penghasilan Per Bulan</span></label>
@@ -273,6 +466,11 @@ export default function Biodata() {
                     <option value="1-3jt">Rp 1.000.000 - Rp 3.000.000</option>
                     <option value="> 3jt">Lebih dari Rp 3.000.000</option>
                   </select>
+                  {fieldErrors.penghasilanIbu && (
+                    <label className="label py-1">
+                      <span className="label-text-alt text-error font-medium">{fieldErrors.penghasilanIbu}</span>
+                    </label>
+                  )}
                 </div>
               </div>
 
@@ -307,22 +505,42 @@ export default function Biodata() {
                   <div className="form-control w-full">
                     <label className="label pt-0"><span className="label-text font-semibold">Alamat Lengkap</span></label>
                     <textarea name="alamatLengkap" value={formData.alamatLengkap} onChange={handleChange} className="textarea textarea-bordered h-24 focus:border-primary w-full bg-base-200/30" placeholder="Nama Jalan, Gg, RT/RW, No Rumah" required></textarea>
+                    {fieldErrors.alamatLengkap && (
+                      <label className="label py-1">
+                        <span className="label-text-alt text-error font-medium">{fieldErrors.alamatLengkap}</span>
+                      </label>
+                    )}
                   </div>
                   
                   <div className="form-control w-full">
                     <label className="label pt-0"><span className="label-text font-semibold">Provinsi</span></label>
                     <input type="text" name="provinsi" value={formData.provinsi} onChange={handleChange} placeholder="Cth: Jawa Tengah" className="input input-bordered focus:border-primary w-full bg-base-200/30" required />
+                    {fieldErrors.provinsi && (
+                      <label className="label py-1">
+                        <span className="label-text-alt text-error font-medium">{fieldErrors.provinsi}</span>
+                      </label>
+                    )}
                   </div>
                   
                   <div className="grid grid-cols-2 gap-4">
                     <div className="form-control w-full">
-                      <label className="label pt-0"><span className="label-text font-semibold">Kabupaten/Kota</span></label>
-                      <input type="text" name="kabupaten" value={formData.kabupaten} onChange={handleChange} placeholder="Kab. / Kota" className="input input-bordered focus:border-primary w-full bg-base-200/30" required />
-                    </div>
-                    <div className="form-control w-full">
-                      <label className="label pt-0"><span className="label-text font-semibold">Kecamatan</span></label>
-                      <input type="text" name="kecamatan" value={formData.kecamatan} onChange={handleChange} placeholder="Kecamatan" className="input input-bordered focus:border-primary w-full bg-base-200/30" required />
-                    </div>
+                    <label className="label pt-0"><span className="label-text font-semibold">Kabupaten/Kota</span></label>
+                    <input type="text" name="kabupaten" value={formData.kabupaten} onChange={handleChange} placeholder="Kab. / Kota" className="input input-bordered focus:border-primary w-full bg-base-200/30" required />
+                    {fieldErrors.kabupaten && (
+                      <label className="label py-1">
+                        <span className="label-text-alt text-error font-medium">{fieldErrors.kabupaten}</span>
+                      </label>
+                    )}
+                  </div>
+                  <div className="form-control w-full">
+                    <label className="label pt-0"><span className="label-text font-semibold">Kecamatan</span></label>
+                    <input type="text" name="kecamatan" value={formData.kecamatan} onChange={handleChange} placeholder="Kecamatan" className="input input-bordered focus:border-primary w-full bg-base-200/30" required />
+                    {fieldErrors.kecamatan && (
+                      <label className="label py-1">
+                        <span className="label-text-alt text-error font-medium">{fieldErrors.kecamatan}</span>
+                      </label>
+                    )}
+                  </div>
                   </div>
                 </div>
               </div>
@@ -340,6 +558,11 @@ export default function Biodata() {
                   <div className="form-control w-full">
                     <label className="label pt-0"><span className="label-text font-semibold">Nama Sekolah Asal</span></label>
                     <input type="text" name="asalSekolah" value={formData.asalSekolah} onChange={handleChange} placeholder="Cth: SD Negeri 1 Jakarta / SMP IT Baitul Hikmah" className="input input-bordered focus:border-primary w-full bg-base-200/30" required />
+                    {fieldErrors.asalSekolah && (
+                      <label className="label py-1">
+                        <span className="label-text-alt text-error font-medium">{fieldErrors.asalSekolah}</span>
+                      </label>
+                    )}
                   </div>
                   
                   <div className="form-control w-full">
@@ -347,6 +570,11 @@ export default function Biodata() {
                       <span className="label-text font-semibold">NPSN Sekolah Asal</span>
                     </label>
                     <input type="text" name="npsnSekolahAsal" value={formData.npsnSekolahAsal} onChange={handleChange} placeholder="8 Digit Nomor Pokok Sekolah Nasional" maxLength={8} className="input input-bordered focus:border-primary w-full bg-base-200/30" />
+                    {fieldErrors.npsnSekolahAsal && (
+                      <label className="label py-1">
+                        <span className="label-text-alt text-error font-medium">{fieldErrors.npsnSekolahAsal}</span>
+                      </label>
+                    )}
                     <label className="label pb-0"><span className="label-text-alt text-base-content/60">Isi jika diketahui. Bisa bertanya ke sekolah asal.</span></label>
                   </div>
 
@@ -378,9 +606,35 @@ export default function Biodata() {
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="form-control w-full">
-                <label className="label pt-0"><span className="label-text font-semibold">Program</span></label>
-                <input type="text" name="program" value={formData.program} onChange={handleChange} placeholder="Program" className="input input-bordered focus:border-primary w-full bg-base-200/30" />
-              </div>
+                 <label className="label pt-0"><span className="label-text font-semibold">Pilih Program Pendaftaran</span></label>
+                 <select 
+                   name="program" 
+                   value={formData.program} 
+                   onChange={handleChange} 
+                   className="select select-bordered focus:border-primary w-full bg-base-200/30"
+                   required
+                 >
+                   <option value="" disabled>Pilih Program</option>
+                   {programs.map((prog) => (
+                     <option key={prog.id} value={prog.name}>
+                       {prog.name}
+                     </option>
+                   ))}
+                   {programs.length === 0 && (
+                     <option value="" disabled>Tidak ada program aktif</option>
+                   )}
+                 </select>
+                 {fieldErrors.program && (
+                    <label className="label py-1">
+                      <span className="label-text-alt text-error font-medium">{fieldErrors.program}</span>
+                    </label>
+                  )}
+                  <label className="label pb-0">
+                    <span className="label-text-alt text-base-content/60">
+                      Pilih salah satu jalur pendaftaran yang tersedia.
+                    </span>
+                  </label>
+               </div>
             </div>
           </div>
           
@@ -406,6 +660,16 @@ export default function Biodata() {
             </div>
             
             <div className="flex gap-3 w-full sm:w-auto">
+              {/* Save Draft Button - Always visible but disabled when saving */}
+              <button 
+                type="button" 
+                onClick={() => handleSubmit(undefined, true)}
+                disabled={isSaving}
+                className="btn btn-ghost border border-base-300 flex-1 sm:flex-none"
+              >
+                Simpan Draf
+              </button>
+
               {activeTab !== 'program' ? (
                 <button 
                   type="button" 
@@ -424,12 +688,17 @@ export default function Biodata() {
               ) : (
                 <button 
                   type="submit" 
-                  className="btn btn-success text-success-content shadow-lg shadow-success/30 flex-1 sm:flex-none text-base"
+                  disabled={isSaving}
+                  className="btn btn-success text-success-content shadow-lg shadow-success/30 flex-1 sm:flex-none text-base disabled:bg-success/50"
                 >
-                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor" className="w-5 h-5 mr-1">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
-                  </svg>
-                  Simpan Biodata
+                  {isSaving ? (
+                    <span className="loading loading-spinner loading-sm"></span>
+                  ) : (
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor" className="w-5 h-5 mr-1">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+                    </svg>
+                  )}
+                  {isSaving ? 'Menyimpan...' : 'Simpan & Selesai'}
                 </button>
               )}
             </div>
@@ -438,24 +707,35 @@ export default function Biodata() {
         </form>
       </div>
 
-          </div>
-
-          {/* Right Sidebar - Timeline */}
-          <div className="lg:col-span-1">
-            <TimelineProgress steps={steps} contactUrl="https://wa.me/123456789" />
-          </div>
-        </div>
-      
-      <style>{`
-        .animate-fade-in {
-          animation: fadeIn 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-        @keyframes fadeIn {
-          0% { opacity: 0; transform: translateY(10px); }
-          100% { opacity: 1; transform: translateY(0); }
-        }
-      `}</style>
-      </div>
     </div>
+
+    {/* Right Sidebar - Timeline */}
+    <div className="lg:col-span-1">
+      <TimelineProgress steps={steps} contactUrl="https://wa.me/123456789" />
+    </div>
+  </div>
+
+</div>
+
+{/* Notification Toast */}
+{notif.open && (
+  <div className="toast toast-top toast-center z-50">
+    <div className={`alert ${notif.variant === 'success' ? 'alert-success' : 'alert-error'} shadow-lg text-white font-medium`}>
+      <span>{notif.message}</span>
+      <button className="btn btn-ghost btn-xs" onClick={() => setNotif({ ...notif, open: false })}>X</button>
+    </div>
+  </div>
+)}
+
+<style>{`
+  .animate-fade-in {
+    animation: fadeIn 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  @keyframes fadeIn {
+    0% { opacity: 0; transform: translateY(10px); }
+    100% { opacity: 1; transform: translateY(0); }
+  }
+`}</style>
+</div>
   );
 }

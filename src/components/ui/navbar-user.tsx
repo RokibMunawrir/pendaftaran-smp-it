@@ -1,8 +1,9 @@
 import ThemeController from "./themecontroller";
+import Logout from "./logout";
 
 export interface UserData {
   name: string;
-  registrationNumber: string;
+  registrationNumber: string | null;
   avatar?: string;
 }
 
@@ -35,28 +36,7 @@ export default function NavbarUser({ user }: NavbarUserProps) {
                 <span className="badge badge-xs badge-primary indicator-item"></span>
               </div>
             </button>
-            <div className="dropdown dropdown-end">
-              <div tabIndex={0} role="button" className="btn btn-ghost btn-circle avatar border border-base-300">
-                <div className="w-9 rounded-full">
-                  <img alt="User avatar" src={user?.avatar || "https://i.pravatar.cc/150?img=11"} />
-                </div>
-              </div>
-              <ul tabIndex={0} className="mt-3 z-[1] p-2 shadow-xl menu menu-sm dropdown-content bg-base-100 rounded-box w-52 border border-base-200">
-                <li className="menu-title px-4 py-2">
-                  <span className="font-semibold text-base-content">{user?.name || "User"}</span>
-                  <span className="text-xs text-base-content/60">{user?.registrationNumber || "-"}</span>
-                </li>
-                <div className="divider my-0"></div>
-                <li>
-                  <a href="/login" className="text-error mt-2 hover:bg-error/10 hover:text-error active:bg-error/20 flex items-center gap-3 p-3 font-semibold transition-all rounded-xl">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor" className="w-5 h-5">
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15M12 9l-3 3m0 0l3 3m-3-3h12.75" />
-                    </svg>
-                    Keluar
-                  </a>
-                </li>
-              </ul>
-            </div>
+            <Logout />
           </div>
         </div>
       </div>

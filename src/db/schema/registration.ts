@@ -1,14 +1,15 @@
 import { mysqlTable, varchar, datetime, index } from "drizzle-orm/mysql-core";
-import { users } from "./users";
+import { user } from "./auth-schema";
 import { profiles } from "./profiles";
 import { academicYears } from "./academicYears";
 import { registrationPaths } from "./registrationPath";
+import { sql } from "drizzle-orm";
 
 export const registrations = mysqlTable(
   "registrations",
   {
     id: varchar("id", { length: 191 }).primaryKey(),
-    userId: varchar("user_id", { length: 191 }).notNull().references(() => users.id),
+    userId: varchar("user_id", { length: 191 }).notNull().references(() => user.id),
     profileId: varchar("profile_id", { length: 191 }).notNull().references(() => profiles.id),
     academicYearId: varchar("academic_year_id", { length: 191 }).notNull().references(() => academicYears.id),
     registrationPathId: varchar("registration_path_id", { length: 191 }).notNull().references(() => registrationPaths.id),
@@ -17,6 +18,9 @@ export const registrations = mysqlTable(
     registeredAt: datetime("registered_at"),
     verifiedAt: datetime("verified_at"),
     verifiedBy: varchar("verified_by", { length: 191 }),
+    createdAt: datetime("created_at", { fsp: 3 }).default(sql`CURRENT_TIMESTAMP(3)`).notNull(),
+    updatedAt: datetime("updated_at", { fsp: 3 }).default(sql`CURRENT_TIMESTAMP(3)`).notNull(),
+    deletedAt: datetime("deleted_at", { fsp: 3 }).default(sql`CURRENT_TIMESTAMP(3)`).notNull(),
   },
   (t) => [
     index("registrations_user_idx").on(t.userId),

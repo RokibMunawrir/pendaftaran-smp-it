@@ -35,6 +35,16 @@ export const settings = mysqlTable("settings", {
 
   biaya: json("biaya"),
 
+  biayaStatus: varchar("biayaStatus", { length: 191 }),
+
+  biayaBankName: varchar("biayaBankName", { length: 191 }),
+
+  biayaAccountNumber: varchar("biayaAccountNumber", { length: 191 }),
+
+  biayaAccountName: varchar("biayaAccountName", { length: 191 }),
+
+  biayaInstruction: text("biayaInstruction"),
+
   faq: json("faq"),
 
   features: json("features"),
@@ -58,6 +68,8 @@ export const settings = mysqlTable("settings", {
   socialWhatsapp: varchar("socialWhatsapp", { length: 191 }),
 
   socialYoutube: varchar("socialYoutube", { length: 191 }),
+
+  tesSchedule: json("tesSchedule"),
 
   footer: varchar("footer", { length: 191 })
 

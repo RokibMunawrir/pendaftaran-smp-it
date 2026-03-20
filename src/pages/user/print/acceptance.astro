@@ -1,0 +1,136 @@
+---
+import { getRegistrationByUserId } from "../../../db/queries/registrations";
+import { getUser } from "../../../db/queries/user";
+import { auth } from "../../../lib/auth";
+
+const session = await auth.api.getSession({
+  headers: Astro.request.headers,
+});
+
+if (!session) {
+  return Astro.redirect("/login");
+}
+
+const userId = session.user.id;
+const userData = await getUser(userId);
+const userObj = userData[0];
+const registration = await getRegistrationByUserId(userId);
+
+if (registration?.status !== 'accepted') {
+  return Astro.redirect("/user/test");
+}
+
+const today = new Date().toLocaleDateString('id-ID', { day: '2-digit', month: 'long', year: 'numeric' });
+---
+
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bukti Diterima - {userObj?.name}</title>
+    <style>
+        @media print {
+            .no-print { display: none; }
+            body { padding: 0; }
+        }
+        body {
+            font-family: 'Times New Roman', Times, serif;
+            line-height: 1.6;
+            color: #000;
+            padding: 50px;
+            max-width: 800px;
+            margin: auto;
+            border: 1px solid #eee;
+        }
+        .header {
+            text-align: center;
+            border-bottom: 3px double #000;
+            padding-bottom: 20px;
+            margin-bottom: 30px;
+        }
+        .header h1 { margin: 0; font-size: 24px; text-transform: uppercase; }
+        .header p { margin: 5px 0 0; font-size: 14px; }
+        .content h2 { text-align: center; text-decoration: underline; margin-bottom: 40px; }
+        .content p { margin-bottom: 20px; text-align: justify; }
+        .info-table { width: 100%; border-collapse: collapse; margin-bottom: 30px; margin-left: 20px; }
+        .info-table td { padding: 8px 0; vertical-align: top; }
+        .info-table td:first-child { width: 200px; font-weight: bold; }
+        .acceptance-box {
+            border: 2px solid #000;
+            padding: 20px;
+            text-align: center;
+            font-size: 20px;
+            font-weight: bold;
+            margin: 40px 0;
+            text-transform: uppercase;
+        }
+        .footer { margin-top: 60px; text-align: right; }
+        .signature { margin-top: 80px; font-weight: bold; }
+        .btn-print {
+            background: #22c55e;
+            color: #fff;
+            padding: 10px 20px;
+            border: none;
+            cursor: pointer;
+            margin-bottom: 20px;
+            border-radius: 5px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="no-print" style="text-align: right;">
+        <button class="btn-print" onclick="window.print()">Cetak Bukti Penerimaan (PDF)</button>
+    </div>
+
+    <div class="header">
+        <h1>Pondok Pesantren Modern Al-Hikmah</h1>
+        <p>Jl. KH. Hasyim Asyari No. 123, Desa Sejahtera, Kec. Mandiri, Kab. Berkah</p>
+        <p>Email: info@alhikmah.pondok | Telp: (021) 12345678</p>
+    </div>
+
+    <div class="content">
+        <h2>SURAT KETERANGAN LULUS SELEKSI</h2>
+        
+        <p>Berdasarkan hasil seleksi tes tulis dan wawancara yang telah dilaksanakan, Panitia Penerimaan Santri Baru Pondok Pesantren Modern Al-Hikmah tahun ajaran 2026/2027 dengan ini menyatakan bahwa:</p>
+
+        <table class="info-table">
+            <tr>
+                <td>Nomor Pendaftaran</td>
+                <td>: {registration?.registrationNumber || '-'}</td>
+            </tr>
+            <tr>
+                <td>Nama Lengkap</td>
+                <td>: {userObj?.name}</td>
+            </tr>
+            <tr>
+                <td>Asal Sekolah</td>
+                <td>: {registration?.previousSchool || '-'}</td>
+            </tr>
+            <tr>
+                <td>Program / Jalur</td>
+                <td>: {registration?.program || '-'}</td>
+            </tr>
+        </table>
+
+        <div class="acceptance-box">
+            DITERIMA / LULUS SELEKSI
+        </div>
+
+        <p>Dinyatakan DITERIMA sebagai santri baru di Pondok Pesantren Modern Al-Hikmah. Kepada calon santri yang dinyatakan lulus agar segera melakukan daftar ulang sesuai dengan jadwal dan ketentuan yang telah ditetapkan.</p>
+        
+        <p>Demikian surat keterangan ini dibuat untuk dapat dipergunakan sebagaimana mestinya. Atas perhatian bapak/ibu kami ucapkan terima kasih.</p>
+    </div>
+
+    <div class="footer">
+        <p>Kotabumi, {today}</p>
+        <p>Ketua Panitia PSB,</p>
+        <div class="signature">
+            <br/>
+            <br/>
+            ( Ust. H. Abdullah, M.Pd.I )
+        </div>
+    </div>
+</body>
+</html>

@@ -14,10 +14,12 @@
   "type": "commonjs",
   "dependencies": {
     "@astrojs/react": "^5.0.0",
+    "@paralleldrive/cuid2": "^3.3.0",
     "@tailwindcss/vite": "^4.2.1",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
     "astro": "^6.0.4",
+    "better-auth": "^1.5.5",
     "daisyui": "^5.5.19",
     "dotenv": "^17.3.1",
     "drizzle-orm": "^0.45.1",
@@ -25,7 +27,8 @@
     "react": "^19.2.4",
     "react-dom": "^19.2.4",
     "tailwindcss": "^4.2.1",
-    "vite": "^7.3.1"
+    "vite": "^7.3.1",
+    "zod": "^4.3.6"
   },
   "devDependencies": {
     "@types/node": "^25.4.0",

@@ -2,63 +2,115 @@ import { useState } from 'react';
 import NavbarUser from '../ui/navbar-user';
 import TimelineProgress, { type TimelineStep } from '../ui/timeline-progress';
 
-export default function DocumentUpload() {
-  // Simulated user data
-  const user = {
-    name: 'Ahmad Rafiqi',
-    registrationNumber: 'PPDB-2026-08921',
-  };
+interface DocumentUploadProps {
+  userId?: string;
+  registrationId?: string;
+  initialDocuments?: any[];
+  user: { name: string; registrationNumber: string | null };
+  steps?: TimelineStep[];
+}
 
-  const steps: TimelineStep[] = [
-    { title: 'Daftar Akun', description: 'Akun berhasil dibuat', status: 'completed', href: '/user/dashboard' },
-    { title: 'Lengkapi Biodata', description: 'Isi form data diri santri', status: 'completed', href: '/user/biodata' },
-    { title: 'Pembayaran', description: 'Bayar biaya pendaftaran', status: 'completed', href: '/user/payment' },
-    { title: 'Upload Berkas', description: 'KK, Akta Kelahiran, dll', status: 'current', href: '/user/document' },
-    { title: 'Tes & Wawancara', description: 'Tes masuk pondok', status: 'upcoming', href: '#' }
-  ];
-
-  const [files, setFiles] = useState<{
-    foto: File | null;
-    kk: File | null;
-    akta: File | null;
-    skl: File | null;
-  }>({
-    foto: null,
-    kk: null,
-    akta: null,
-    skl: null,
+export default function DocumentUpload({
+  userId = "",
+  registrationId = "",
+  initialDocuments = [],
+  user,
+  steps = []
+}: DocumentUploadProps) {
+  
+  const [notif, setNotif] = useState<{ open: boolean; message: string; variant: "success" | "error" }>({
+    open: false,
+    message: "",
+    variant: "success",
   });
 
-  const handleFileChange = (type: keyof typeof files) => (e: React.ChangeEvent<HTMLInputElement>) => {
+  const [uploading, setUploading] = useState<Record<string, boolean>>({});
+  
+  // Find initial document URLs if they exist
+  const getInitialUrl = (type: string) => {
+    return initialDocuments.find(d => d.type === type)?.fileUrl || null;
+  };
+
+  const [files, setFiles] = useState<{
+    foto: string | null;
+    kk: string | null;
+    akta: string | null;
+    skl: string | null;
+  }>({
+    foto: getInitialUrl('foto'),
+    kk: getInitialUrl('kk'),
+    akta: getInitialUrl('akta'),
+    skl: getInitialUrl('skl'),
+  });
+
+  const handleFileChange = (type: keyof typeof files) => async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
-      setFiles(prev => ({ ...prev, [type]: e.target.files![0] }));
+      const selectedFile = e.target.files[0];
+      
+      if (!registrationId) {
+        setNotif({ open: true, message: "Registration ID tidak ditemukan. Harap selesaikan biodata terlebih dahulu.", variant: "error" });
+        return;
+      }
+
+      setUploading(prev => ({ ...prev, [type]: true }));
+      
+      const formData = new FormData();
+      formData.append("file", selectedFile);
+      formData.append("type", type);
+      formData.append("registrationId", registrationId);
+
+      try {
+        const response = await fetch("/api/user/document", {
+          method: "POST",
+          body: formData,
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          setFiles(prev => ({ ...prev, [type]: data.fileUrl }));
+          setNotif({ open: true, message: `${type.toUpperCase()} Berhasil diunggah!`, variant: "success" });
+        } else {
+          const err = await response.json();
+          throw new Error(err.error || "Gagal mengunggah file");
+        }
+      } catch (error: any) {
+        setNotif({ open: true, message: error.message, variant: "error" });
+      } finally {
+        setUploading(prev => ({ ...prev, [type]: false }));
+      }
     }
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!files.foto || !files.kk || !files.akta || !files.skl) {
-      alert("Mohon lengkapi semua dokumen yang diwajibkan.");
+      setNotif({ open: true, message: "Mohon lengkapi semua dokumen yang diwajibkan.", variant: "error" });
       return;
     }
-    console.log("Submitting documents:", files);
-    alert('Berkas Berhasil Diunggah! Menunggu verifikasi admin.');
+    setNotif({ open: true, message: 'Berkas Berhasil Diunggah! Menunggu verifikasi admin.', variant: 'success' });
   };
 
   const FileInput = ({ label, type, accept, desc }: { label: string, type: keyof typeof files, accept: string, desc: string }) => {
-    const file = files[type];
+    const fileUrl = files[type];
+    const isUploading = uploading[type];
+
     return (
       <div className="form-control w-full">
         <label className="label pt-0"><span className="label-text font-semibold">{label}</span></label>
-        <label className={`flex flex-col items-center justify-center w-full h-32 border-2 border-dashed rounded-2xl cursor-pointer transition-colors ${file ? 'border-success bg-success/5' : 'border-base-300 bg-base-200/20 hover:bg-base-200/50 hover:border-primary'}`}>
+        <label className={`flex flex-col items-center justify-center w-full h-32 border-2 border-dashed rounded-2xl cursor-pointer transition-colors ${fileUrl ? 'border-success bg-success/5' : 'border-base-300 bg-base-200/20 hover:bg-base-200/50 hover:border-primary'}`}>
           <div className="flex flex-col items-center justify-center pt-5 pb-6 text-center px-4">
-            {file ? (
+            {isUploading ? (
+              <div className="flex flex-col items-center">
+                <span className="loading loading-spinner loading-md text-primary mb-2"></span>
+                <p className="text-sm font-medium">Mengunggah...</p>
+              </div>
+            ) : fileUrl ? (
               <>
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="w-8 h-8 text-success mb-2">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
                 </svg>
-                <p className="mb-1 text-sm font-semibold text-base-content truncate max-w-[200px] sm:max-w-[200px]">{file.name}</p>
-                <p className="text-xs text-base-content/50">{(file.size / 1024).toFixed(2)} KB • Klik untuk mengganti</p>
+                <p className="mb-1 text-sm font-semibold text-base-content truncate max-w-[200px]">Sudah Terunggah</p>
+                <p className="text-xs text-base-content/50">Klik untuk mengganti</p>
               </>
             ) : (
               <>
@@ -72,7 +124,7 @@ export default function DocumentUpload() {
               </>
             )}
           </div>
-          <input type="file" className="hidden" accept={accept} onChange={handleFileChange(type)} />
+          <input type="file" className="hidden" accept={accept} onChange={handleFileChange(type)} disabled={isUploading} />
         </label>
       </div>
     );
@@ -153,16 +205,15 @@ export default function DocumentUpload() {
                   </div>
                 </div>
 
-                <div className="pt-6 mt-6 border-t border-base-200">
+                <div className="pt-6 mt-6 border-t border-base-200 text-right">
                   <button 
                     type="submit" 
                     className="btn btn-primary w-full sm:w-auto px-8 shadow-lg shadow-primary/30 text-base" 
-                    disabled={!files.foto || !files.kk || !files.akta || !files.skl}
                   >
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor" className="w-5 h-5 mr-1">
                       <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
                     </svg>
-                    Simpan & Ajukan Verifikasi
+                    Ajukan Verifikasi
                   </button>
                 </div>
               </form>
@@ -177,6 +228,26 @@ export default function DocumentUpload() {
         </div>
         
       </div>
+
+      {/* Notification Toast */}
+      {notif.open && (
+        <div className="toast toast-top toast-center z-50">
+          <div className={`alert ${notif.variant === 'success' ? 'alert-success' : 'alert-error'} shadow-lg text-white font-medium`}>
+            <span>{notif.message}</span>
+            <button className="btn btn-ghost btn-xs" onClick={() => setNotif({ ...notif, open: false })}>X</button>
+          </div>
+        </div>
+      )}
+
+      <style>{`
+        .animate-fade-in {
+          animation: fadeIn 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        @keyframes fadeIn {
+          0% { opacity: 0; transform: translateY(10px); }
+          100% { opacity: 1; transform: translateY(0); }
+        }
+      `}</style>
     </div>
   );
 }

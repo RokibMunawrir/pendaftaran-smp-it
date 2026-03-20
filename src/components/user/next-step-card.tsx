@@ -1,14 +1,15 @@
-import React from 'react';
+import { REGISTRATION_STATUS } from '../../lib/utils/status';
 
 export type RegistrationStatus = 
-  | 'registered' 
-  | 'pending_payment' 
-  | 'upload_document' 
-  | 'verifying' 
-  | 'test_interview' 
-  | 'accepted'
-  | 'revision'
-  | 'rejected'
+  | 'REGISTERED' 
+  | 'DRAFT'
+  | 'PENDING_PAYMENT' 
+  | 'UPLOAD_DOCUMENT' 
+  | 'VERIFYING' 
+  | 'TEST_INTERVIEW' 
+  | 'ACCEPTED'
+  | 'REVISION'
+  | 'REJECTED'
   | string;
 
 interface NextStepCardProps {
@@ -22,10 +23,14 @@ export default function NextStepCard({ status }: NextStepCardProps) {
   let textClass = 'text-primary-content';
   let buttons = null;
   let icon = null;
+  let linkStatus = '';
 
-  switch(status) {
-    case 'registered':
+  const normalizedStatus = status?.toUpperCase();
+
+  switch(normalizedStatus) {
+    case REGISTRATION_STATUS.REGISTERED:
       title = 'Lengkapi Biodata';
+      linkStatus = '/user/biodata';
       description = 'Langkah Anda selanjutnya adalah melengkapi form data diri, data orang tua, dan asal sekolah.';
       icon = (
         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-8 h-8">
@@ -34,14 +39,32 @@ export default function NextStepCard({ status }: NextStepCardProps) {
       );
       buttons = (
         <div className="mt-6 flex flex-wrap gap-4 items-center">
-          <button className="btn bg-white text-primary border-none hover:bg-base-200">
+          <div className="btn bg-white text-primary border-none hover:bg-base-200">
             Isi Biodata
-          </button>
+          </div>
         </div>
       );
       break;
-    case 'pending_payment':
+    case REGISTRATION_STATUS.DRAFT:
+      title = 'Lanjutkan Isi Biodata';
+      linkStatus = '/user/biodata';
+      description = 'Pendaftaran Anda masih dalam draf. Silakan lanjutkan pengisian data diri, orang tua, dan berkas lainnya.';
+      icon = (
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-8 h-8">
+          <path strokeLinecap="round" strokeLinejoin="round" d="M15 9h3.75M15 12h3.75M15 15h3.75M4.5 19.5h15a2.25 2.25 0 0 0 2.25-2.25V6.75A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25v10.5A2.25 2.25 0 0 0 4.5 19.5Zm6-10.125a1.875 1.875 0 1 1-3.75 0 1.875 1.875 0 0 1 3.75 0Zm1.294 6.336a6.721 6.721 0 0 1-3.17.789 6.721 6.721 0 0 1-3.168-.789 3.376 3.376 0 0 1 6.338 0Z" />
+        </svg>
+      );
+      buttons = (
+        <div className="mt-6 flex flex-wrap gap-4 items-center">
+          <div className="btn bg-white text-primary border-none hover:bg-base-200">
+            Lanjutkan Isi
+          </div>
+        </div>
+      );
+      break;
+    case REGISTRATION_STATUS.PENDING_PAYMENT:
       title = 'Selesaikan Pembayaran';
+      linkStatus = '/user/payment';
       description = 'Langkah Anda selanjutnya adalah melunasi biaya pendaftaran untuk memverifikasi akun Anda dan melanjutkan ke tahap upload berkas.';
       icon = (
         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-8 h-8">
@@ -50,17 +73,18 @@ export default function NextStepCard({ status }: NextStepCardProps) {
       );
       buttons = (
         <div className="mt-6 flex flex-wrap gap-4 items-center">
-          <button className="btn bg-white text-primary border-none hover:bg-base-200">
+          <div className="btn bg-white text-primary border-none hover:bg-base-200">
             Bayar Sekarang
-          </button>
+          </div>
           <button className="btn btn-ghost text-primary-content hover:bg-primary-focus/50">
             Cara Pembayaran
           </button>
         </div>
       );
       break;
-    case 'upload_document':
+    case REGISTRATION_STATUS.UPLOAD_DOCUMENT:
       title = 'Upload Berkas Persyaratan';
+      linkStatus = '/user/document';
       description = 'Pembayaran Anda telah diverifikasi. Silakan upload berkas persyaratan seperti KK, Akta Kelahiran, dan Ijazah.';
       icon = (
         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-8 h-8">
@@ -69,14 +93,15 @@ export default function NextStepCard({ status }: NextStepCardProps) {
       );
       buttons = (
         <div className="mt-6 flex flex-wrap gap-4 items-center">
-          <button className="btn bg-white text-primary border-none hover:bg-base-200">
+          <div className="btn bg-white text-primary border-none hover:bg-base-200">
             Upload Berkas
-          </button>
+          </div>
         </div>
       );
       break;
-    case 'verifying':
+    case REGISTRATION_STATUS.VERIFYING:
       title = 'Pendaftaran Sedang Diverifikasi';
+      linkStatus = '#'; // Or a status page
       description = 'Terima kasih, data dan berkas Anda sedang dalam proses verifikasi oleh panitia. Silakan cek secara berkala.';
       bgGradient = 'from-info to-info/80';
       textClass = 'text-info-content';
@@ -87,14 +112,15 @@ export default function NextStepCard({ status }: NextStepCardProps) {
       );
       buttons = (
          <div className="mt-6 flex flex-wrap gap-4 items-center">
-          <button className="btn bg-white text-info border-none hover:bg-base-200">
+          <div className="btn bg-white text-info border-none hover:bg-base-200">
             Cek Status
-          </button>
+          </div>
         </div>
       );
       break;
-    case 'test_interview':
+    case REGISTRATION_STATUS.TEST_INTERVIEW:
       title = 'Jadwal Tes & Wawancara';
+      linkStatus = '/user/test';
       description = 'Berkas Anda telah terverifikasi. Langkah selanjutnya adalah mengikuti tes masuk dan wawancara sesuai jadwal.';
       bgGradient = 'from-secondary to-secondary/80';
       textClass = 'text-secondary-content';
@@ -105,14 +131,15 @@ export default function NextStepCard({ status }: NextStepCardProps) {
       );
       buttons = (
         <div className="mt-6 flex flex-wrap gap-4 items-center">
-          <button className="btn bg-white text-secondary border-none hover:bg-base-200">
+          <div className="btn bg-white text-secondary border-none hover:bg-base-200">
             Lihat Jadwal
-          </button>
+          </div>
         </div>
       );
       break;
-    case 'revision':
+    case REGISTRATION_STATUS.REVISION:
       title = 'Perbaikan Data/Berkas';
+      linkStatus = '/user/revision';
       description = 'Mohon maaf, ada data atau berkas yang belum sesuai. Silakan cek catatan panitia dan lakukan perbaikan.';
       bgGradient = 'from-error to-error/80';
       textClass = 'text-error-content';
@@ -123,14 +150,15 @@ export default function NextStepCard({ status }: NextStepCardProps) {
       );
       buttons = (
         <div className="mt-6 flex flex-wrap gap-4 items-center">
-          <button className="btn bg-white text-error border-none hover:bg-base-200">
+          <div className="btn bg-white text-error border-none hover:bg-base-200">
             Perbaiki Data
-          </button>
+          </div>
         </div>
       );
       break;
-    case 'rejected':
+    case REGISTRATION_STATUS.REJECTED:
       title = 'Pendaftaran Ditolak';
+      linkStatus = '/user/rejected';
       description = 'Mohon maaf, pendaftaran Anda tidak dapat dilanjutkan. Silakan hubungi panitia untuk informasi lebih lanjut.';
       bgGradient = 'from-base-300 to-base-300/80';
       textClass = 'text-base-content';
@@ -141,14 +169,15 @@ export default function NextStepCard({ status }: NextStepCardProps) {
       );
       buttons = (
         <div className="mt-6 flex flex-wrap gap-4 items-center">
-          <button className="btn bg-white text-base-content border-none hover:bg-base-200">
+          <div className="btn bg-white text-base-content border-none hover:bg-base-200">
             Hubungi Panitia
-          </button>
+          </div>
         </div>
       );
       break;
-    case 'accepted':
+    case REGISTRATION_STATUS.ACCEPTED:
       title = 'Selamat, Anda Diterima!';
+      linkStatus = '/user/accepted';
       description = 'Alhamdulillah, Anda telah dinyatakan lulus dan diterima sebagai santri baru. Silakan lakukan daftar ulang.';
       bgGradient = 'from-success to-success/80';
       textClass = 'text-success-content';
@@ -159,9 +188,9 @@ export default function NextStepCard({ status }: NextStepCardProps) {
       );
       buttons = (
         <div className="mt-6 flex flex-wrap gap-4 items-center">
-          <button className="btn bg-white text-success border-none hover:bg-base-200">
+          <div className="btn bg-white text-success border-none hover:bg-base-200">
             Informasi Daftar Ulang
-          </button>
+          </div>
         </div>
       );
       break;
@@ -176,8 +205,8 @@ export default function NextStepCard({ status }: NextStepCardProps) {
       break;
   }
 
-  return (
-    <div className={`card bg-gradient-to-br ${bgGradient} ${textClass} shadow-xl shadow-current/20 overflow-hidden relative`}>
+  const cardContent = (
+    <div className={`card bg-gradient-to-br ${bgGradient} ${textClass} shadow-xl shadow-current/20 overflow-hidden relative transition-all duration-300 ${linkStatus ? 'hover:shadow-2xl hover:scale-[1.01] active:scale-[0.99] cursor-pointer' : ''}`}>
       {/* Decorative background elements */}
       <div className="absolute top-0 right-0 p-8 transform translate-x-1/4 -translate-y-1/4 opacity-10">
         <svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg" className="w-64 h-64 fill-current">
@@ -200,4 +229,10 @@ export default function NextStepCard({ status }: NextStepCardProps) {
       </div>
     </div>
   );
+
+  return linkStatus ? (
+    <a href={linkStatus} className="block no-underline">
+      {cardContent}
+    </a>
+  ) : cardContent;
 }

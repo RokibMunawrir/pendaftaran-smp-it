@@ -1,8 +1,23 @@
 ---
 import Layout from "../../../layouts/Layout.astro";
 import UsersContent from "../../../components/ui/admin/users";
+import { auth } from "../../../lib/auth";
+
+export const prerender = false;
+
+const session = await auth.api.getSession({
+  headers: Astro.request.headers,
+});
+
+if (!session) {
+  return Astro.redirect("/login");
+}
+
+if ((session.user as any).role !== "admin") {
+  return Astro.redirect("/admin/dashboard");
+}
 ---
 
 <Layout title="Users" description="Manajemen Users">
-  <UsersContent client:only="react" />
+  <UsersContent client:only="react" currentUserId={session.user.id} />
 </Layout>

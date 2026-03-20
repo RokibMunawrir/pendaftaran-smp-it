@@ -63,6 +63,10 @@ export interface LandingPageData {
   features: FeatureItem[];
   agenda: AgendaItem[];
   biaya: BiayaItem[];
+  biayaBankName: string;
+  biayaAccountNumber: string;
+  biayaAccountName: string;
+  biayaInstruction: string;
   faq: FaqItem[];
   contact: ContactInfo;
   social: SocialMedia;
@@ -90,6 +94,10 @@ const emptyData: LandingPageData = {
   features: [],
   agenda: [],
   biaya: [],
+  biayaBankName: "",
+  biayaAccountNumber: "",
+  biayaAccountName: "",
+  biayaInstruction: "",
   faq: [],
   contact: {
     address: "",
@@ -765,48 +773,92 @@ export default function SettingWebContent({ initialData }: { initialData?: Landi
             </svg>
           }
         >
-          <div className="space-y-3">
-            <div className="overflow-x-auto">
-              <table className="table table-sm">
-                <thead>
-                  <tr>
-                    <th>Komponen Biaya</th>
-                    <th>Jumlah</th>
-                    <th>Keterangan</th>
-                    <th className="w-24">Aksi</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {data.biaya.map((b, i) => (
-                    <tr key={i} className="hover:bg-base-200/50">
-                      <td className="font-medium">{b.name}</td>
-                      <td><span className="badge badge-ghost badge-sm">{b.amount}</span></td>
-                      <td className="text-sm text-base-content/60">{b.description}</td>
-                      <td>
-                        <div className="flex gap-1">
-                          <button className="btn btn-ghost btn-sm" onClick={() => openEditBiaya(i)}>
-                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="size-4">
-                              <path strokeLinecap="round" strokeLinejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10" />
-                            </svg>
-                          </button>
-                          <button className="btn btn-ghost btn-sm text-error" onClick={() => deleteBiaya(i)}>
-                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="size-4">
-                              <path strokeLinecap="round" strokeLinejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" />
-                            </svg>
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+          <div className="space-y-5">
+            {/* Informasi Rekening Pembayaran */}
+            <div className="p-4 rounded-xl border border-primary/20 bg-primary/5">
+              <h4 className="text-sm font-bold text-primary mb-3 flex items-center gap-2">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="size-4">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 21v-8.25M15.75 21v-8.25M8.25 21v-8.25M3 9l9-6 9 6m-1.5 12V10.332A48.36 48.36 0 0 0 12 9.75c-2.551 0-5.056.2-7.5.582V21M3 21h18M12 6.75h.008v.008H12V6.75Z" />
+                </svg>
+                Informasi Rekening Pembayaran
+              </h4>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <InputField
+                  label="Nama Bank"
+                  value={data.biayaBankName}
+                  onChange={(val) => setData({ ...data, biayaBankName: val })}
+                  placeholder="Contoh: Bank Syariah Indonesia (BSI)"
+                />
+                <InputField
+                  label="Nomor Rekening"
+                  value={data.biayaAccountNumber}
+                  onChange={(val) => setData({ ...data, biayaAccountNumber: val })}
+                  placeholder="Contoh: 7123 4567 89"
+                />
+                <InputField
+                  label="Nama Pemilik Rekening"
+                  value={data.biayaAccountName}
+                  onChange={(val) => setData({ ...data, biayaAccountName: val })}
+                  placeholder="Contoh: Yayasan Pondok Pesantren"
+                />
+              </div>
+              <div className="mt-3">
+                <TextareaField
+                  label="Tata Cara Pembayaran"
+                  value={data.biayaInstruction}
+                  onChange={(val) => setData({ ...data, biayaInstruction: val })}
+                  placeholder="Silakan transfer sesuai nominal di atas. Simpan bukti transfer untuk diunggah."
+                  rows={3}
+                  helpText="Instruksi ini akan ditampilkan di halaman pembayaran user"
+                />
+              </div>
             </div>
-            <button className="btn btn-outline btn-sm gap-2 mt-3" onClick={openAddBiaya}>
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="size-4">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
-              </svg>
-              Tambah Biaya
-            </button>
+
+            {/* Daftar Komponen Biaya */}
+            <div>
+              <h4 className="text-sm font-bold text-base-content/70 mb-2">Rincian Komponen Biaya</h4>
+              <div className="overflow-x-auto">
+                <table className="table table-sm">
+                  <thead>
+                    <tr>
+                      <th>Komponen Biaya</th>
+                      <th>Jumlah</th>
+                      <th>Keterangan</th>
+                      <th className="w-24">Aksi</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {data.biaya.map((b, i) => (
+                      <tr key={i} className="hover:bg-base-200/50">
+                        <td className="font-medium">{b.name}</td>
+                        <td><span className="badge badge-ghost badge-sm">{b.amount}</span></td>
+                        <td className="text-sm text-base-content/60">{b.description}</td>
+                        <td>
+                          <div className="flex gap-1">
+                            <button className="btn btn-ghost btn-sm" onClick={() => openEditBiaya(i)}>
+                              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="size-4">
+                                <path strokeLinecap="round" strokeLinejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10" />
+                              </svg>
+                            </button>
+                            <button className="btn btn-ghost btn-sm text-error" onClick={() => deleteBiaya(i)}>
+                              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="size-4">
+                                <path strokeLinecap="round" strokeLinejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" />
+                              </svg>
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+              <button className="btn btn-outline btn-sm gap-2 mt-3" onClick={openAddBiaya}>
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="size-4">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+                </svg>
+                Tambah Biaya
+              </button>
+            </div>
           </div>
         </SectionCard>
 

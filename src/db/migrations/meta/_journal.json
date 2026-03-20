@@ -43,6 +43,97 @@
       "when": 1773472602241,
       "tag": "0005_silly_loki",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "5",
+      "when": 1773498328782,
+      "tag": "0006_flashy_golden_guardian",
+      "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "5",
+      "when": 1773530241321,
+      "tag": "0007_fluffy_cardiac",
+      "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "5",
+      "when": 1773557677867,
+      "tag": "0008_worthless_timeslip",
+      "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "5",
+      "when": 1773653865698,
+      "tag": "0009_amazing_hairball",
+      "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "5",
+      "when": 1773671876537,
+      "tag": "0010_eminent_jane_foster",
+      "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "5",
+      "when": 1773672158470,
+      "tag": "0011_dashing_ezekiel_stane",
+      "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "5",
+      "when": 1773674940971,
+      "tag": "0012_cultured_starhawk",
+      "breakpoints": true
+    },
+    {
+      "idx": 13,
+      "version": "5",
+      "when": 1773676090814,
+      "tag": "0013_silky_hobgoblin",
+      "breakpoints": true
+    },
+    {
+      "idx": 14,
+      "version": "5",
+      "when": 1773733628290,
+      "tag": "0014_wise_power_pack",
+      "breakpoints": true
+    },
+    {
+      "idx": 15,
+      "version": "5",
+      "when": 1773820667304,
+      "tag": "0015_misty_dakota_north",
+      "breakpoints": true
+    },
+    {
+      "idx": 16,
+      "version": "5",
+      "when": 1773821816308,
+      "tag": "0016_polite_bloodstrike",
+      "breakpoints": true
+    },
+    {
+      "idx": 17,
+      "version": "5",
+      "when": 1773822685756,
+      "tag": "0017_open_exodus",
+      "breakpoints": true
+    },
+    {
+      "idx": 18,
+      "version": "5",
+      "when": 1773983995074,
+      "tag": "0018_vengeful_albert_cleary",
+      "breakpoints": true
     }
   ]
 }

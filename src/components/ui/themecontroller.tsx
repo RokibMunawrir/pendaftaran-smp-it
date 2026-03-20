@@ -1,6 +1,10 @@
 import { useState, useEffect } from "react";
 
-export default function ThemeController() {
+interface ThemeControllerProps {
+  className?: string;
+}
+
+export default function ThemeController({ className = "" }: ThemeControllerProps) {
   const [theme, setTheme] = useState(() => {
     if (typeof window !== "undefined") {
       return localStorage.getItem("theme") || "cupcake";
@@ -9,17 +13,29 @@ export default function ThemeController() {
   });
 
   const toggleTheme = () => {
-    setTheme(theme === "cupcake" ? "dark" : "cupcake");
+    const newTheme = theme === "cupcake" ? "dark" : "cupcake";
+    setTheme(newTheme);
+    document.documentElement.setAttribute("data-theme", newTheme);
+    localStorage.setItem("theme", newTheme);
   };
 
+  // Sync state with DOM and localStorage on mount/change
   useEffect(() => {
     document.documentElement.setAttribute("data-theme", theme);
     localStorage.setItem("theme", theme);
   }, [theme]);
 
+  // Handle system/external theme changes if necessary
+  useEffect(() => {
+    const currentTheme = localStorage.getItem("theme") || "cupcake";
+    if (currentTheme !== theme) {
+      setTheme(currentTheme);
+    }
+  }, []);
+
   return (
-    <label className="swap swap-rotate">
-      <input type="checkbox" checked={theme === "dark"} onChange={toggleTheme} />
+    <label className={`swap swap-rotate ${className}`}>
+      <input type="checkbox" checked={theme === "dark"} onChange={toggleTheme} className="hidden" />
 
       {/* Sun icon (cupcake / light) */}
       <svg

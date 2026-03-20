@@ -1,4 +1,5 @@
 import Logout from "./logout";
+import ThemeController from "./themecontroller";
 
 interface NavbarProps {
   title?: string;
@@ -28,7 +29,8 @@ export default function Navbar({ title = "Navbar Title" }: NavbarProps) {
         </svg>
       </label>
       <div className="px-4">{title}</div>
-      <div className="ml-auto">
+      <div className="ml-auto flex items-center gap-2">
+        <ThemeController className="btn btn-ghost btn-circle btn-sm" />
         <Logout />
       </div>
     </nav>

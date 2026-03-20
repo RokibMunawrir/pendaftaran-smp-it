@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import Navbar from "./navbar";
+import { auth } from "../../lib/client-auth";
 import ThemeController from "./themecontroller";
 
 const DRAWER_STORAGE_KEY = "drawer-open";
@@ -8,11 +9,12 @@ interface MenuItem {
   label: string;
   href?: string;
   icon: React.ReactNode;
+  adminOnly?: boolean;
 }
 
 const menuItems: MenuItem[] = [
   {
-    label: "Homepage",
+    label: "Dashboard",
     href: "/admin/dashboard",
     icon: (
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" strokeLinejoin="round" strokeLinecap="round" strokeWidth="2" fill="none" stroke="currentColor" className="my-1.5 inline-block size-4">
@@ -40,6 +42,15 @@ const menuItems: MenuItem[] = [
     ),
   },
   {
+    label: "Setting Pendaftaran",
+    href: "/admin/setting/pendaftaran",
+    icon: (
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="my-1.5 inline-block size-4">
+        <path strokeLinecap="round" strokeLinejoin="round" d="M11.35 3.836c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 0 0 .75-.75 2.25 2.25 0 0 0-.1-.664m-5.8 0A2.251 2.251 0 0 1 13.5 2.25H15c1.012 0 1.867.668 2.15 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m0 0H4.875c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V9.375c0-.621-.504-1.125-1.125-1.125H8.25ZM6.75 12h.008v.008H6.75V12Zm0 3h.008v.008H6.75V15Zm0 3h.008v.008H6.75V18Z" />
+      </svg>
+    ),
+  },
+  {
     label: "Pengumuman",
     href: "/admin/pengumuman",
     icon: (
@@ -58,8 +69,18 @@ const menuItems: MenuItem[] = [
     ),
   },
   {
+    label: "Tes & Wawancara",
+    href: "/admin/test-schedule",
+    icon: (
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="my-1.5 inline-block size-4">
+        <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+      </svg>
+    ),
+  },
+  {
     label: "Users",
     href: "/admin/users",
+    adminOnly: true,
     icon: (
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" strokeLinejoin="round" strokeLinecap="round" strokeWidth="2" fill="none" stroke="currentColor" className="my-1.5 inline-block size-4">
         <path d="M20 7h-9" />
@@ -77,6 +98,18 @@ interface PanelProps {
 }
 
 export default function Panel({ title, children }: PanelProps) {
+  const [userRole, setUserRole] = useState<string | undefined>(undefined);
+
+  useEffect(() => {
+    auth.getSession().then(({ data }) => {
+      setUserRole((data?.user as any)?.role);
+    });
+  }, []);
+
+  const visibleMenuItems = menuItems.filter(
+    (item) => !item.adminOnly || userRole === "admin"
+  );
+
   const [drawerOpen, setDrawerOpen] = useState(() => {
     if (typeof window !== "undefined") {
       const saved = localStorage.getItem(DRAWER_STORAGE_KEY);
@@ -105,9 +138,9 @@ export default function Panel({ title, children }: PanelProps) {
 
       <div className="drawer-side is-drawer-close:overflow-visible">
         <label htmlFor="my-drawer-4" aria-label="close sidebar" className="drawer-overlay"></label>
-        <div className="flex min-h-full flex-col items-start bg-base-200 is-drawer-close:w-14 is-drawer-open:w-32">
+        <div className="flex min-h-full flex-col items-start bg-base-200 is-drawer-close:w-14 is-drawer-open:w-40">
           <ul className="menu w-full grow">
-            {menuItems.map((item) => (
+            {visibleMenuItems.map((item) => (
               <li key={item.label}>
                 <a
                   href={item.href}
@@ -120,9 +153,6 @@ export default function Panel({ title, children }: PanelProps) {
               </li>
             ))}
           </ul>
-          <div className="p-3">
-            <ThemeController />
-          </div>
         </div>
       </div>
     </div>

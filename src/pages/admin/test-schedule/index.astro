@@ -1,0 +1,19 @@
+---
+import Layout from "../../../layouts/Layout.astro";
+import TestScheduleAdmin from "../../../components/ui/admin/test-schedule";
+import { auth } from "../../../lib/auth";
+
+export const prerender = false;
+
+const session = await auth.api.getSession({
+  headers: Astro.request.headers,
+});
+
+if (!session) {
+  return Astro.redirect("/login");
+}
+---
+
+<Layout title="Tes & Wawancara" description="Pengaturan Jadwal Tes & Wawancara">
+  <TestScheduleAdmin client:only="react" />
+</Layout>

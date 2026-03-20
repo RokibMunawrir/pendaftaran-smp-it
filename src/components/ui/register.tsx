@@ -1,15 +1,78 @@
 import { useState } from 'react';
+import { z } from 'zod';
+import { auth } from "../../lib/client-auth";
+import { toTitleCase } from "../../lib/utils/string";
+
+const registerSchema = z.object({
+  nama: z.string().min(1, 'Nama lengkap wajib diisi'),
+  email: z.string().email('Format email tidak valid'),
+  password: z.string().min(8, 'Kata sandi minimal 8 karakter'),
+  confirmPassword: z.string().min(1, 'Konfirmasi kata sandi wajib diisi'),
+}).refine((data) => data.password === data.confirmPassword, {
+  message: "Kata sandi tidak cocok",
+  path: ["confirmPassword"],
+});
+
+type RegisterFormData = z.infer<typeof registerSchema>;
 
 export default function Register() {
   const [nama, setNama] = useState('');
-  const [nik, setNik] = useState('');
-  const [tanggalLahir, setTanggalLahir] = useState('');
   const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [error, setError] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const [fieldErrors, setFieldErrors] = useState<Partial<Record<keyof RegisterFormData, string>>>({});
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // TODO: Implement register logic
-    console.log("Register attempted with:", { nama, nik, tanggalLahir, email });
+    setError('');
+    setIsLoading(true);
+    setFieldErrors({});
+
+    const result = registerSchema.safeParse({
+      nama,
+      email,
+      password,
+      confirmPassword,
+    });
+
+    if (!result.success) {
+      const formattedErrors: Partial<Record<keyof RegisterFormData, string>> = {};
+      result.error.issues.forEach((issue) => {
+        if (issue.path[0]) {
+          formattedErrors[issue.path[0] as keyof RegisterFormData] = issue.message;
+        }
+      });
+      setFieldErrors(formattedErrors);
+      
+      if (formattedErrors.confirmPassword === "Kata sandi tidak cocok") {
+        setError("Kata sandi tidak cocok");
+      }
+      setIsLoading(false);
+      return;
+    }
+
+    try {
+      const { error: authError } = await auth.signUp.email({
+        email: result.data.email,
+        password: result.data.password,
+        name: result.data.nama,
+        callbackURL: "/login",
+      });
+
+      if (authError) {
+        setError(authError.message || "Gagal membuat akun. Silakan coba lagi.");
+        setIsLoading(false);
+        return;
+      }
+
+      // Successful registration - redirect is handled by callbackURL or manual
+      window.location.href = "/login";
+    } catch (err: any) {
+      setError("Terjadi kesalahan sistem. Silakan coba beberapa saat lagi.");
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -131,6 +194,13 @@ export default function Register() {
               </label>
             </div>
 
+            {error && (
+              <div className="alert alert-error mb-4 rounded-xl shadow-sm border-none bg-error/10 text-error flex items-center gap-3">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" className="stroke-current shrink-0 w-6 h-6"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                <span className="text-sm font-semibold">{error}</span>
+              </div>
+            )}
+
             <form onSubmit={handleSubmit} className="space-y-4">
               
               {/* Nama Form */}
@@ -149,85 +219,110 @@ export default function Register() {
                     placeholder="Masukkan nama lengkap" 
                     className="input input-bordered w-full pl-11 bg-base-200/50 focus:bg-base-100 focus:border-primary transition-colors focus:ring-1 focus:ring-primary/50 rounded-xl"
                     value={nama}
-                    onChange={(e) => setNama(e.target.value)}
+                    onChange={(e) => setNama(toTitleCase(e.target.value))}
                     required
                   />
                 </div>
+                {fieldErrors.nama && (
+                  <label className="label py-1">
+                    <span className="label-text-alt text-error font-medium">{fieldErrors.nama}</span>
+                  </label>
+                )}
               </div>
 
-              {/* NIK Form */}
+              {/* Email Form */}
               <div className="form-control w-full">
                 <label className="label pt-0 pb-1">
-                  <span className="label-text font-semibold text-base-content/80">NIK</span>
+                  <span className="label-text font-semibold text-base-content/80">Alamat Email</span>
                 </label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-base-content/40">
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="w-5 h-5">
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M15 9h3.75M15 12h3.75M15 15h3.75M4.5 19.5h15a2.25 2.25 0 002.25-2.25V6.75A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25v10.5A2.25 2.25 0 004.5 19.5zm6-10.125a1.875 1.875 0 11-3.75 0 1.875 1.875 0 013.75 0zm1.294 6.336a6.721 6.721 0 01-3.17.789 6.721 6.721 0 01-3.168-.789 3.376 3.376 0 016.338 0z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75" />
                     </svg>
                   </div>
                   <input 
-                    type="text" 
-                    placeholder="Masukkan 16 digit NIK" 
+                    type="email" 
+                    placeholder="Masukkan email aktif" 
                     className="input input-bordered w-full pl-11 bg-base-200/50 focus:bg-base-100 focus:border-primary transition-colors focus:ring-1 focus:ring-primary/50 rounded-xl"
-                    value={nik}
-                    onChange={(e) => setNik(e.target.value)}
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
                     required
                   />
                 </div>
+                {fieldErrors.email && (
+                  <label className="label py-1">
+                    <span className="label-text-alt text-error font-medium">{fieldErrors.email}</span>
+                  </label>
+                )}
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {/* Tanggal Lahir Form */}
-                <div className="form-control w-full">
-                  <label className="label pt-0 pb-1">
-                    <span className="label-text font-semibold text-base-content/80">Tanggal Lahir</span>
-                  </label>
-                  <div className="relative">
-                    <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-base-content/40">
-                      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="w-5 h-5">
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5" />
-                      </svg>
-                    </div>
-                    <input 
-                      type="date" 
-                      className="input input-bordered w-full pl-11 bg-base-200/50 focus:bg-base-100 focus:border-primary transition-colors focus:ring-1 focus:ring-primary/50 rounded-xl"
-                      value={tanggalLahir}
-                      onChange={(e) => setTanggalLahir(e.target.value)}
-                      required
-                    />
+              {/* Password Form */}
+              <div className="form-control w-full">
+                <label className="label pt-0 pb-1">
+                  <span className="label-text font-semibold text-base-content/80">Kata Sandi</span>
+                </label>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-base-content/40">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="w-5 h-5">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z" />
+                    </svg>
                   </div>
+                  <input 
+                    type="password" 
+                    placeholder="Min. 8 karakter" 
+                    className="input input-bordered w-full pl-11 bg-base-200/50 focus:bg-base-100 focus:border-primary transition-colors focus:ring-1 focus:ring-primary/50 rounded-xl"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    required
+                    minLength={8}
+                  />
                 </div>
+                {fieldErrors.password && (
+                  <label className="label py-1">
+                    <span className="label-text-alt text-error font-medium">{fieldErrors.password}</span>
+                  </label>
+                )}
+              </div>
 
-                {/* Email Form */}
-                <div className="form-control w-full">
-                  <label className="label pt-0 pb-1">
-                    <span className="label-text font-semibold text-base-content/80">Alamat Email</span>
-                  </label>
-                  <div className="relative">
-                    <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-base-content/40">
-                      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="w-5 h-5">
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75" />
-                      </svg>
-                    </div>
-                    <input 
-                      type="email" 
-                      placeholder="Masukkan email aktif" 
-                      className="input input-bordered w-full pl-11 bg-base-200/50 focus:bg-base-100 focus:border-primary transition-colors focus:ring-1 focus:ring-primary/50 rounded-xl"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      required
-                    />
+              {/* Confirm Password Form */}
+              <div className="form-control w-full">
+                <label className="label pt-0 pb-1">
+                  <span className="label-text font-semibold text-base-content/80">Konfirmasi Kata Sandi</span>
+                </label>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-base-content/40">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="w-5 h-5">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z" />
+                    </svg>
                   </div>
+                  <input 
+                    type="password" 
+                    placeholder="Ulangi kata sandi" 
+                    className="input input-bordered w-full pl-11 bg-base-200/50 focus:bg-base-100 focus:border-primary transition-colors focus:ring-1 focus:ring-primary/50 rounded-xl"
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    required
+                  />
                 </div>
+                {fieldErrors.confirmPassword && (
+                  <label className="label py-1">
+                    <span className="label-text-alt text-error font-medium">{fieldErrors.confirmPassword}</span>
+                  </label>
+                )}
               </div>
 
               {/* Submit Button */}
               <button 
                 type="submit" 
+                disabled={isLoading}
                 className="btn btn-primary w-full rounded-xl text-primary-content hover:shadow-lg hover:shadow-primary/30 transition-all font-bold text-base mt-4"
               >
-                Daftar Sekarang
+                {isLoading ? (
+                  <span className="loading loading-spinner loading-sm"></span>
+                ) : (
+                  "Daftar Sekarang"
+                )}
               </button>
               
             </form>

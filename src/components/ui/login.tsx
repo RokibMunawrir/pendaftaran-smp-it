@@ -1,14 +1,68 @@
 import { useState } from 'react';
+import { z } from 'zod';
+import { auth } from "../../lib/client-auth";
+
+const loginSchema = z.object({
+  identifier: z.string().min(1, 'Username atau email wajib diisi'),
+  password: z.string().min(1, 'Kata sandi wajib diisi'),
+});
+
+type LoginFormData = z.infer<typeof loginSchema>;
 
 export default function Login() {
   const [identifier, setIdentifier] = useState(''); // username or email
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [error, setError] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const [fieldErrors, setFieldErrors] = useState<Partial<Record<keyof LoginFormData, string>>>({});
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // TODO: Implement login logic
-    console.log("Login attempted with:", { identifier, password });
+    setError('');
+    setIsLoading(true);
+    setFieldErrors({});
+
+    const result = loginSchema.safeParse({
+      identifier,
+      password,
+    });
+
+    if (!result.success) {
+      const formattedErrors: Partial<Record<keyof LoginFormData, string>> = {};
+      result.error.issues.forEach((issue) => {
+        if (issue.path[0]) {
+          formattedErrors[issue.path[0] as keyof LoginFormData] = issue.message;
+        }
+      });
+      setFieldErrors(formattedErrors);
+      setIsLoading(false);
+      return;
+    }
+
+    try {
+      const { data, error: authError } = await auth.signIn.email({
+        email: result.data.identifier,
+        password: result.data.password,
+      });
+
+      if (authError) {
+        setError(authError.message || "Gagal masuk. Silakan periksa kredensial Anda.");
+        setIsLoading(false);
+        return;
+      }
+
+      // Successful login - Check role for redirection
+      const userRole = (data?.user as any)?.role;
+      if (userRole === 'admin' || userRole === 'operator') {
+        window.location.href = "/admin/dashboard";
+      } else {
+        window.location.href = "/user/dashboard";
+      }
+    } catch (err: any) {
+      setError("Terjadi kesalahan sistem. Silakan coba beberapa saat lagi.");
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -149,6 +203,13 @@ export default function Login() {
                 <svg className="swap-on fill-current w-6 h-6" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M21.64,13a1,1,0,0,0-1.05-.14,8.05,8.05,0,0,1-3.37.73A8.15,8.15,0,0,1,9.08,5.49a8.59,8.59,0,0,1,.25-2A1,1,0,0,0,8,2.36,10.14,10.14,0,1,0,22,14.05,1,1,0,0,0,21.64,13Zm-9.5,6.69A8.14,8.14,0,0,1,7.08,5.22v.27A10.15,10.15,0,0,0,17.22,15.63a9.79,9.79,0,0,0,2.1-.22A8.11,8.11,0,0,1,12.14,19.73Z"/></svg>
               </label>
             </div>
+            {error && (
+              <div className="alert alert-error mb-4 rounded-xl shadow-sm border-none bg-error/10 text-error flex items-center gap-3">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" className="stroke-current shrink-0 w-6 h-6"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                <span className="text-sm font-semibold">{error}</span>
+              </div>
+            )}
+
             <form onSubmit={handleSubmit} className="space-y-6">
               
               {/* Username / Email Field */}
@@ -171,6 +232,11 @@ export default function Login() {
                     required
                   />
                 </div>
+                {fieldErrors.identifier && (
+                  <label className="label py-1">
+                    <span className="label-text-alt text-error font-medium">{fieldErrors.identifier}</span>
+                  </label>
+                )}
               </div>
 
               {/* Password Field */}
@@ -212,14 +278,24 @@ export default function Login() {
                     )}
                   </button>
                 </div>
+                {fieldErrors.password && (
+                  <label className="label py-1">
+                    <span className="label-text-alt text-error font-medium">{fieldErrors.password}</span>
+                  </label>
+                )}
               </div>
 
               {/* Submit Button */}
               <button 
                 type="submit" 
+                disabled={isLoading}
                 className="btn btn-primary w-full rounded-xl text-primary-content hover:shadow-lg hover:shadow-primary/30 transition-all font-bold text-base mt-2"
               >
-                Masuk Sekarang
+                {isLoading ? (
+                  <span className="loading loading-spinner loading-sm"></span>
+                ) : (
+                  "Masuk Sekarang"
+                )}
               </button>
               
             </form>

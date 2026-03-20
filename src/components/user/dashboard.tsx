@@ -3,19 +3,28 @@ import NavbarUser from '../ui/navbar-user';
 import TimelineProgress, { type TimelineStep } from '../ui/timeline-progress';
 import NextStepCard from './next-step-card';
 
-export default function UserDashboard() {
+import { REGISTRATION_STATUS } from '../../lib/utils/status';
+
+interface UserDashboardProps {
+  user: {
+    name: string;
+    registrationNumber: string | null;
+    status: string;
+    pathway: string | null;
+    program?: string | null;
+    registrationDate: string | null;
+  };
+  announcements: {
+    id: string;
+    title: string | null;
+    content: string | null;
+    createdAt: Date;
+  }[];
+}
+
+export default function UserDashboard({ user, announcements }: UserDashboardProps) {
   const [greeting, setGreeting] = useState('');
   
-  // Simulated user data
-  const user = {
-    name: 'Ahmad Rafiqi',
-    registrationNumber: 'PPDB-2026-08921',
-    status: 'test_interview', // 'registered', 'pending_payment', 'verifying', 'accepted'
-    pathway: 'Reguler',
-    program: 'Tahfidz Al-Quran',
-    registrationDate: '08 Maret 2026'
-  };
-
   useEffect(() => {
     const hour = new Date().getHours();
     if (hour < 11) setGreeting('Selamat Pagi');
@@ -34,24 +43,27 @@ export default function UserDashboard() {
       { title: 'Tes & Wawancara', description: 'Tes masuk pondok', status: 'upcoming' }
     ];
 
+    const normalizedStatus = currentStatus?.toUpperCase();
     const statusIndexMap: Record<string, number> = {
-      'registered': 1,
-      'pending_payment': 2,
-      'upload_document': 3,
-      'revision': 3, 
-      'verifying': 4,
-      'test_interview': 5,
-      'accepted': 6,
-      'rejected': 6
+      [REGISTRATION_STATUS.REGISTERED]: 1,
+      [REGISTRATION_STATUS.DRAFT]: 1,
+      [REGISTRATION_STATUS.PENDING_PAYMENT]: 2,
+      [REGISTRATION_STATUS.UPLOAD_DOCUMENT]: 3,
+      [REGISTRATION_STATUS.REVISION]: 3, 
+      [REGISTRATION_STATUS.VERIFYING]: 4,
+      [REGISTRATION_STATUS.PENDING_VERIFICATION]: 4,
+      [REGISTRATION_STATUS.TEST_INTERVIEW]: 5,
+      [REGISTRATION_STATUS.ACCEPTED]: 6,
+      [REGISTRATION_STATUS.REJECTED]: 6
     };
 
-    const currentIndex = statusIndexMap[currentStatus] || 0;
+    const currentIndex = statusIndexMap[normalizedStatus] || 0;
 
     return defaultSteps.map((step, index) => {
       let stepStatus: 'completed' | 'current' | 'upcoming' = 'upcoming';
       if (index < currentIndex) {
         stepStatus = 'completed';
-      } else if (index === currentIndex && currentStatus !== 'accepted' && currentStatus !== 'rejected') {
+      } else if (index === currentIndex && normalizedStatus !== REGISTRATION_STATUS.ACCEPTED && normalizedStatus !== REGISTRATION_STATUS.REJECTED) {
         stepStatus = 'current';
       }
       return { ...step, status: stepStatus };
@@ -82,50 +94,53 @@ export default function UserDashboard() {
             let dotColor = 'bg-warning';
             let label = 'Menunggu Pembayaran';
 
-            switch (user.status) {
-              case 'registered':
+            const normalizedStatus = user.status?.toUpperCase();
+            switch (normalizedStatus) {
+              case REGISTRATION_STATUS.REGISTERED:
+              case REGISTRATION_STATUS.DRAFT:
                 badgeBg = 'bg-primary/10 border-primary/20';
                 badgeText = 'text-primary';
                 dotColor = 'bg-primary';
                 label = 'Lengkapi Biodata';
                 break;
-              case 'pending_payment':
+              case REGISTRATION_STATUS.PENDING_PAYMENT:
                 badgeBg = 'bg-warning/10 border-warning/20';
                 badgeText = 'text-warning-content';
                 dotColor = 'bg-warning';
                 label = 'Menunggu Pembayaran';
                 break;
-              case 'upload_document':
+              case REGISTRATION_STATUS.UPLOAD_DOCUMENT:
                 badgeBg = 'bg-info/10 border-info/20';
                 badgeText = 'text-info';
                 dotColor = 'bg-info';
                 label = 'Upload Berkas';
                 break;
-              case 'verifying':
+              case REGISTRATION_STATUS.VERIFYING:
+              case REGISTRATION_STATUS.PENDING_VERIFICATION:
                 badgeBg = 'bg-info/10 border-info/20';
                 badgeText = 'text-info';
                 dotColor = 'bg-info';
                 label = 'Sedang Diverifikasi';
                 break;
-              case 'test_interview':
+              case REGISTRATION_STATUS.TEST_INTERVIEW:
                 badgeBg = 'bg-secondary/10 border-secondary/20';
                 badgeText = 'text-secondary';
                 dotColor = 'bg-secondary';
                 label = 'Jadwal Tes & Wawancara';
                 break;
-              case 'revision':
+              case REGISTRATION_STATUS.REVISION:
                 badgeBg = 'bg-error/10 border-error/20';
                 badgeText = 'text-error';
                 dotColor = 'bg-error';
                 label = 'Perbaikan Data';
                 break;
-              case 'rejected':
+              case REGISTRATION_STATUS.REJECTED:
                 badgeBg = 'bg-base-300 border-base-content/20';
                 badgeText = 'text-base-content';
                 dotColor = 'bg-base-content/50';
                 label = 'Ditolak';
                 break;
-              case 'accepted':
+              case REGISTRATION_STATUS.ACCEPTED:
                 badgeBg = 'bg-success/10 border-success/20';
                 badgeText = 'text-success';
                 dotColor = 'bg-success';
@@ -161,7 +176,7 @@ export default function UserDashboard() {
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="w-6 h-6"><path strokeLinecap="round" strokeLinejoin="round" d="M15 9h3.75M15 12h3.75M15 15h3.75M4.5 19.5h15a2.25 2.25 0 0 0 2.25-2.25V6.75A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25v10.5A2.25 2.25 0 0 0 4.5 19.5Zm6-10.125a1.875 1.875 0 1 1-3.75 0 1.875 1.875 0 0 1 3.75 0Zm1.294 6.336a6.721 6.721 0 0 1-3.17.789 6.721 6.721 0 0 1-3.168-.789 3.376 3.376 0 0 1 6.338 0Z" /></svg>
                   </div>
                   <h3 className="text-xs font-semibold text-base-content/50 uppercase tracking-wider mb-1">No. Registrasi</h3>
-                  <p className="font-bold text-base-content">{user.registrationNumber}</p>
+                  <p className="font-bold text-base-content">{user.registrationNumber || '-'}</p>
                 </div>
               </div>
               <div className="card bg-base-100 shadow-sm border border-base-200">
@@ -170,7 +185,7 @@ export default function UserDashboard() {
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="w-6 h-6"><path strokeLinecap="round" strokeLinejoin="round" d="M12 21v-8.25M15.75 21v-8.25M8.25 21v-8.25M3 9l9-6 9 6m-1.5 12V10.332A48.36 48.36 0 0 0 12 9.75c-2.551 0-5.056.2-7.5.582V21M3 21h18M12 6.75h.008v.008H12V6.75Z" /></svg>
                   </div>
                   <h3 className="text-xs font-semibold text-base-content/50 uppercase tracking-wider mb-1">Program</h3>
-                  <p className="font-bold text-base-content">{user.program}</p>
+                  <p className="font-bold text-base-content">{user.program || '-'}</p>
                 </div>
               </div>
               <div className="card bg-base-100 shadow-sm border border-base-200">
@@ -179,7 +194,7 @@ export default function UserDashboard() {
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="w-6 h-6"><path strokeLinecap="round" strokeLinejoin="round" d="M15 19.128a9.38 9.38 0 0 0 2.625.372 9.337 9.337 0 0 0 4.121-.952 4.125 4.125 0 0 0-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 0 1 8.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0 1 11.964-3.07M12 6.375a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0Zm8.25 2.25a2.625 2.625 0 1 1-5.25 0 2.625 2.625 0 0 1 5.25 0Z" /></svg>
                   </div>
                   <h3 className="text-xs font-semibold text-base-content/50 uppercase tracking-wider mb-1">Jalur</h3>
-                  <p className="font-bold text-base-content">{user.pathway}</p>
+                  <p className="font-bold text-base-content">{user.pathway || '-'}</p>
                 </div>
               </div>
               <div className="card bg-base-100 shadow-sm border border-base-200">
@@ -188,7 +203,7 @@ export default function UserDashboard() {
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="w-6 h-6"><path strokeLinecap="round" strokeLinejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5" /></svg>
                   </div>
                   <h3 className="text-xs font-semibold text-base-content/50 uppercase tracking-wider mb-1">Tgl Daftar</h3>
-                  <p className="font-bold text-base-content">{user.registrationDate}</p>
+                  <p className="font-bold text-base-content">{user.registrationDate || '-'}</p>
                 </div>
               </div>
             </div>
@@ -202,27 +217,22 @@ export default function UserDashboard() {
                 </h2>
                 
                 <div className="space-y-4">
-                  <div className="flex gap-4 p-4 rounded-2xl bg-base-200/50 hover:bg-base-200 transition-colors cursor-pointer border border-transparent hover:border-base-300">
-                    <div className="flex-shrink-0 w-12 h-12 bg-white rounded-xl flex items-center justify-center shadow-sm text-lg font-bold text-primary">
-                      10
-                      <span className="text-[10px] block -mt-1 font-normal text-base-content/60">Mar</span>
+                  {announcements.length > 0 ? announcements.map((announcement) => (
+                    <div key={announcement.id} className="flex gap-4 p-4 rounded-2xl bg-base-200/50 hover:bg-base-200 transition-colors cursor-pointer border border-transparent hover:border-base-300">
+                      <div className="flex-shrink-0 w-12 h-12 bg-white rounded-xl flex items-center justify-center shadow-sm text-lg font-bold text-primary flex-col">
+                        {new Date(announcement.createdAt).getDate()}
+                        <span className="text-[10px] block -mt-1 font-normal text-base-content/60">
+                          {new Date(announcement.createdAt).toLocaleString('default', { month: 'short' })}
+                        </span>
+                      </div>
+                      <div>
+                        <h4 className="font-bold text-base-content">{announcement.title}</h4>
+                        <p className="text-sm text-base-content/70 mt-1 line-clamp-2">{announcement.content}</p>
+                      </div>
                     </div>
-                    <div>
-                      <h4 className="font-bold text-base-content">Jadwal Ujian Masuk Gelombang 1</h4>
-                      <p className="text-sm text-base-content/70 mt-1 line-clamp-2">Pemberitahuan kepada seluruh calon santri untuk mempersiapkan diri mengikuti ujian masuk yang akan diselenggarakan secara online...</p>
-                    </div>
-                  </div>
-                  
-                  <div className="flex gap-4 p-4 rounded-2xl bg-base-200/50 hover:bg-base-200 transition-colors cursor-pointer border border-transparent hover:border-base-300">
-                    <div className="flex-shrink-0 w-12 h-12 bg-white rounded-xl flex items-center justify-center shadow-sm text-lg font-bold text-primary">
-                      08
-                      <span className="text-[10px] block -mt-1 font-normal text-base-content/60">Mar</span>
-                    </div>
-                    <div>
-                      <h4 className="font-bold text-base-content">Panduan Pembayaran Virtual Account</h4>
-                      <p className="text-sm text-base-content/70 mt-1 line-clamp-2">Berikut adalah tata cara melakukan pembayaran infak pendaftaran menggunakan layanan Virtual Account dari BSI, BRI, maupun Mandiri...</p>
-                    </div>
-                  </div>
+                  )) : (
+                    <p className="text-center text-base-content/50 py-4">Belum ada pengumuman.</p>
+                  )}
                 </div>
                 
                 <button className="btn btn-block btn-outline border-base-300 mt-6 text-base-content/70 hover:bg-base-200 hover:text-base-content">

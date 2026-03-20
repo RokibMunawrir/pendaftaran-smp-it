@@ -32,6 +32,10 @@ export const POST: APIRoute = async ({ request }) => {
     features: b.features,
     agenda: b.agenda,
     biaya: b.biaya,
+    biayaBankName: b.biayaBankName,
+    biayaAccountNumber: b.biayaAccountNumber,
+    biayaAccountName: b.biayaAccountName,
+    biayaInstruction: b.biayaInstruction,
     faq: b.faq,
     announcements: b.announcements,
     contactAddress: b.contact?.address,
@@ -43,6 +47,7 @@ export const POST: APIRoute = async ({ request }) => {
     socialWhatsapp: b.social?.whatsapp,
     socialYoutube: b.social?.youtube,
     footer: b.footer,
+    tesSchedule: b.tesSchedule,
     updatedAt: new Date()
   }
 

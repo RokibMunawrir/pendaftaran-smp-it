@@ -19,6 +19,7 @@ interface ModalProps {
   cancelLabel?: string;
   onConfirm?: () => void;
   loading?: boolean;
+  disabled?: boolean;
   className?: string;
 }
 
@@ -83,6 +84,7 @@ export default function Modal({
   cancelLabel = "Batal",
   onConfirm,
   loading = false,
+  disabled = false,
   className = "",
 }: ModalProps) {
   // Auto-dismiss for notification mode
@@ -132,11 +134,11 @@ export default function Modal({
         </div>
 
         <div className="modal-action">
-          <button className="btn btn-ghost btn-sm" onClick={onClose} disabled={loading}>
+          <button className="btn btn-ghost btn-sm" onClick={onClose} disabled={loading || disabled}>
             {cancelLabel}
           </button>
           {onConfirm && (
-            <button className={`btn btn-sm ${btnClass}`} onClick={onConfirm} disabled={loading}>
+            <button className={`btn btn-sm ${btnClass}`} onClick={onConfirm} disabled={loading || disabled}>
               {loading && <span className="loading loading-spinner loading-xs"></span>}
               {confirmLabel}
             </button>

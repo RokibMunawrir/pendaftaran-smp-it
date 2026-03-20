@@ -1,0 +1,2 @@
+ALTER TABLE `user` MODIFY COLUMN `role` enum('admin','operator','santri') DEFAULT 'santri';--> statement-breakpoint
+ALTER TABLE `user` MODIFY COLUMN `status` enum('ACTIVE','INACTIVE') DEFAULT 'ACTIVE';

@@ -1,11 +1,58 @@
 ---
 import Layout from "../../../layouts/Layout.astro";
 import DocumentUpload from "../../../components/user/document";
+import { getRegistrationByUserId } from "../../../db/queries/registrations";
+import { getDocumentsByRegistrationId } from "../../../db/queries/documents";
+import { getUser } from "../../../db/queries/user";
+import { type TimelineStep } from "../../../components/ui/timeline-progress";
+
+import { auth } from "../../../lib/auth";
+
+import { REGISTRATION_STATUS } from "../../../lib/utils/status";
+
+const session = await auth.api.getSession({
+  headers: Astro.request.headers,
+});
+
+if (!session) {
+  return Astro.redirect("/login");
+}
+
+const userId = session.user.id;
+
+const userData = await getUser(userId);
+const userObj = userData[0];
+
+const registration = await getRegistrationByUserId(userId);
+const documents = registration ? await getDocumentsByRegistrationId(registration.id) : [];
+
+const userProps = {
+  name: userObj?.name || "User",
+  registrationNumber: registration?.registrationNumber || null,
+};
+
+const normalizedRegStatus = registration?.status?.toUpperCase() || "";
+
+const steps: TimelineStep[] = [
+    { title: 'Daftar Akun', description: 'Akun berhasil dibuat', status: 'completed' as const, href: '/user/dashboard' },
+    { title: 'Lengkapi Biodata', description: 'Isi form data diri santri', status: registration ? 'completed' : 'current', href: '/user/biodata' },
+    { title: 'Pembayaran', description: 'Bayar biaya pendaftaran', status: normalizedRegStatus === REGISTRATION_STATUS.PENDING_PAYMENT ? 'current' : ([REGISTRATION_STATUS.REGISTERED, REGISTRATION_STATUS.DRAFT].includes(normalizedRegStatus as any) ? 'upcoming' : 'completed'), href: '/user/payment' },
+    { title: 'Upload Berkas', description: 'KK, Akta Kelahiran, dll', status: normalizedRegStatus === REGISTRATION_STATUS.UPLOAD_DOCUMENT ? 'current' : ([REGISTRATION_STATUS.VERIFYING, REGISTRATION_STATUS.TEST_INTERVIEW, REGISTRATION_STATUS.ACCEPTED].includes(normalizedRegStatus as any) ? 'completed' : 'upcoming'), href: '/user/document' },
+    { title: 'Tes & Wawancara', description: 'Tes masuk pondok', status: normalizedRegStatus === REGISTRATION_STATUS.TEST_INTERVIEW ? 'current' : (normalizedRegStatus === REGISTRATION_STATUS.ACCEPTED ? 'completed' : 'upcoming'), href: '#' }
+];
+
 ---
 
 <Layout
   title="Upload Berkas"
   description="Upload Berkas Pendaftaran Santri Baru"
 >
-  <DocumentUpload client:only="react" />
+  <DocumentUpload 
+    client:only="react" 
+    userId={userId}
+    registrationId={registration?.id}
+    initialDocuments={documents}
+    user={userProps}
+    steps={steps}
+  />
 </Layout>
