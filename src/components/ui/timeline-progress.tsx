@@ -9,15 +9,17 @@ interface TimelineProgressProps {
   steps: TimelineStep[];
   currentStepMessage?: string;
   contactUrl?: string;
+  className?: string;
 }
 
 export default function TimelineProgress({ 
   steps, 
   currentStepMessage = "Silakan selesaikan step saat ini agar Anda dapat melanjutkan ke tahapan berikutnya.",
-  contactUrl = "https://wa.me/123456789"
+  contactUrl = "https://wa.me/123456789",
+  className = ""
 }: TimelineProgressProps) {
   return (
-    <div className="card bg-base-100 shadow-sm border border-base-200 sticky top-24">
+    <div className={`card bg-base-100 shadow-sm border border-base-200 sticky top-24 ${className}`}>
       <div className="card-body p-6 md:p-8">
         <h2 className="card-title text-xl font-bold mb-6">Progress Pendaftaran</h2>
         

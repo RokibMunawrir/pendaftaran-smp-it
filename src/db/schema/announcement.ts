@@ -13,5 +13,5 @@ export const announcements = mysqlTable("announcements", {
   target: varchar("target", { length: 50 }).default("all"),
   createdAt: datetime("createdAt", { fsp: 3 }).default(sql`CURRENT_TIMESTAMP(3)`).notNull(),
   updatedAt: datetime("updatedAt", { fsp: 3 }).default(sql`CURRENT_TIMESTAMP(3)`).notNull(),
-  deletedAt: datetime("deletedAt", { fsp: 3 }).default(sql`CURRENT_TIMESTAMP(3)`).notNull(),
+  deletedAt: datetime("deletedAt", { fsp: 3 }),
 });

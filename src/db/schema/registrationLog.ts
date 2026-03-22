@@ -8,5 +8,5 @@ export const registrationLogs = mysqlTable("registration_logs", {
   notes: text("notes"),
   createdAt: datetime("created_at", { fsp: 3 }).default(sql`CURRENT_TIMESTAMP(3)`).notNull(),
   updatedAt: datetime("updated_at", { fsp: 3 }).default(sql`CURRENT_TIMESTAMP(3)`).notNull(),
-  deletedAt: datetime("deleted_at", { fsp: 3 }).default(sql`CURRENT_TIMESTAMP(3)`).notNull(),
+  deletedAt: datetime("deleted_at", { fsp: 3 }),
 });

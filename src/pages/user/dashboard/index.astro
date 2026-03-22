@@ -2,7 +2,7 @@
 import Layout from "../../../layouts/Layout.astro";
 import UserDashboard from "../../../components/user/dashboard";
 import { getRegistrationByUserId, ensureRegistration } from "../../../db/queries/registrations";
-import { getAnnouncements } from "../../../db/queries/announcement";
+import { getPublishedAnnouncements } from "../../../db/queries/announcement";
 import { getUser } from "../../../db/queries/user";
 import { auth } from "../../../lib/auth";
 
@@ -24,7 +24,7 @@ const userData = await getUser(userId);
 const user = userData[0];
 
 const registration = await ensureRegistration(userId);
-const announcementsData = await getAnnouncements();
+const announcementsData = await getPublishedAnnouncements();
 
 const dashboardUser = {
   name: user?.name || "User",

@@ -7,5 +7,5 @@ export const registrationStatuses = mysqlTable("registration_statuses", {
   description: text("description"),
   createdAt: datetime("created_at", { fsp: 3 }).default(sql`CURRENT_TIMESTAMP(3)`).notNull(),
   updatedAt: datetime("updated_at", { fsp: 3 }).default(sql`CURRENT_TIMESTAMP(3)`).notNull(),
-  deletedAt: datetime("deleted_at", { fsp: 3 }).default(sql`CURRENT_TIMESTAMP(3)`).notNull(),
+  deletedAt: datetime("deleted_at", { fsp: 3 }),
 });

@@ -108,7 +108,7 @@ export default function Register() {
                         <path d="m3.265 13.602 7.668 4.129a2.25 2.25 0 0 0 2.134 0l7.668-4.13-1.065.573-6.506 3.504a3.75 3.75 0 0 1-3.556 0l-6.506-3.504-1.065-.572Z" />
                       </svg>
                   </div>
-                  <span className="text-2xl font-bold tracking-wider">Al-Hikmah</span>
+                  <span className="text-2xl font-bold tracking-wider">PPDB</span>
                </a>
                <div className="px-4 py-2 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-xs font-semibold tracking-widest uppercase shadow-sm">
                  Portal Edukasi

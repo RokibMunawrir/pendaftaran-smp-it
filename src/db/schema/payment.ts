@@ -17,7 +17,7 @@ export const payments = mysqlTable(
     verifiedBy: varchar("verified_by", { length: 191 }),
     createdAt: datetime("created_at", { fsp: 3 }).default(sql`CURRENT_TIMESTAMP(3)`).notNull(),
     updatedAt: datetime("updated_at", { fsp: 3 }).default(sql`CURRENT_TIMESTAMP(3)`).notNull(),
-    deletedAt: datetime("deleted_at", { fsp: 3 }).default(sql`CURRENT_TIMESTAMP(3)`).notNull(),
+    deletedAt: datetime("deleted_at", { fsp: 3 }),
   },
   (t) => [
     index("payments_registration_idx").on(t.registrationId),

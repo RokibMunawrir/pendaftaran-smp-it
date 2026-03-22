@@ -12,6 +12,7 @@ interface Pendaftar {
   program: string;
   status: string | null;
   registeredAt: Date | null;
+  avatarUrl?: string | null;
 }
 
 import { getStatusBadge } from "../../../lib/utils/status";
@@ -119,7 +120,7 @@ export default function ListContent({ data }: { data: Pendaftar[] }) {
                         <div className="flex items-center gap-3">
                           <div className="avatar rounded">
                             <div className="mask mask-squircle h-10 w-10">
-                              <img className="rounded-full" src={`https://ui-avatars.com/api/?name=${encodeURIComponent(p.name)}&background=random&size=80`} alt={p.name} />
+                              <img className="object-cover w-full h-full rounded-full" src={p.avatarUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(p.name)}&background=random&size=80`} alt={p.name} />
                             </div>
                           </div>
                           <div>

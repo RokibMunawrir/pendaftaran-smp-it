@@ -3,7 +3,8 @@ import { registrations } from "../schema/registration";
 import { user } from "../schema/auth-schema";
 import { profiles } from "../schema/profiles";
 import { registrationPaths } from "../schema/registrationPath";
-import { eq } from "drizzle-orm";
+import { documents } from "../schema/document";
+import { eq, and } from "drizzle-orm";
 
 export const getRegistrations = async () => {
   return await db
@@ -18,11 +19,13 @@ export const getRegistrations = async () => {
       status: registrations.status,
       registrationNumber: registrations.registrationNumber,
       registeredAt: registrations.registeredAt,
+      avatarUrl: documents.fileUrl,
     })
     .from(registrations)
     .innerJoin(user, eq(registrations.userId, user.id))
     .innerJoin(profiles, eq(registrations.profileId, profiles.id))
-    .innerJoin(registrationPaths, eq(registrations.registrationPathId, registrationPaths.id));
+    .innerJoin(registrationPaths, eq(registrations.registrationPathId, registrationPaths.id))
+    .leftJoin(documents, and(eq(registrations.id, documents.registrationId), eq(documents.type, "foto")));
 };
 
 export const getRegistrationByUserId = async (userId: string) => {
@@ -60,6 +63,7 @@ export const getRegistrationByUserId = async (userId: string) => {
       registrationDate: registrations.registeredAt,
       registrationNumber: registrations.registrationNumber,
       status: registrations.status,
+      verifiedBy: registrations.verifiedBy,
     })
     .from(registrations)
     .innerJoin(user, eq(registrations.userId, user.id))

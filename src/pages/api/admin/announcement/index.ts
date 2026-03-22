@@ -20,7 +20,13 @@ export const PUT: APIRoute = async ({ request }) => {
 }
 
 export const DELETE: APIRoute = async ({ request }) => {
-    const body = await request.json()
-    const announcement = await deleteAnnouncement(body.id)
+    const url = new URL(request.url)
+    const id = url.searchParams.get("id")
+    
+    if (!id) {
+        return new Response(JSON.stringify({ error: "ID is required" }), { status: 400 })
+    }
+
+    const announcement = await deleteAnnouncement(id)
     return new Response(JSON.stringify(announcement)) 
 }

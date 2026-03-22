@@ -158,7 +158,7 @@ export default function NextStepCard({ status }: NextStepCardProps) {
       break;
     case REGISTRATION_STATUS.REJECTED:
       title = 'Pendaftaran Ditolak';
-      linkStatus = '/user/rejected';
+      linkStatus = '/user/result';
       description = 'Mohon maaf, pendaftaran Anda tidak dapat dilanjutkan. Silakan hubungi panitia untuk informasi lebih lanjut.';
       bgGradient = 'from-base-300 to-base-300/80';
       textClass = 'text-base-content';
@@ -177,7 +177,7 @@ export default function NextStepCard({ status }: NextStepCardProps) {
       break;
     case REGISTRATION_STATUS.ACCEPTED:
       title = 'Selamat, Anda Diterima!';
-      linkStatus = '/user/accepted';
+      linkStatus = '/user/result';
       description = 'Alhamdulillah, Anda telah dinyatakan lulus dan diterima sebagai santri baru. Silakan lakukan daftar ulang.';
       bgGradient = 'from-success to-success/80';
       textClass = 'text-success-content';

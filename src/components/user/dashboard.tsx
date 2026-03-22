@@ -235,9 +235,9 @@ export default function UserDashboard({ user, announcements }: UserDashboardProp
                   )}
                 </div>
                 
-                <button className="btn btn-block btn-outline border-base-300 mt-6 text-base-content/70 hover:bg-base-200 hover:text-base-content">
+                <a href="/pengumuman" className="btn btn-block btn-outline border-base-300 mt-6 text-base-content/70 hover:bg-base-200 hover:text-base-content no-underline">
                   Lihat Semua Pengumuman
-                </button>
+                </a>
               </div>
             </div>
             

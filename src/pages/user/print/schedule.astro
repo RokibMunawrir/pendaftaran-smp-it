@@ -19,6 +19,14 @@ const registration = await getRegistrationByUserId(userId);
 const allSettings = await getSettings();
 const settings = allSettings[0];
 
+let adminName = "Panitia Penerimaan Santri Baru";
+if (registration?.verifiedBy) {
+  const adminData = await getUser(registration.verifiedBy);
+  if (adminData && adminData.length > 0 && adminData[0].name) {
+    adminName = adminData[0].name;
+  }
+}
+
 const agenda = Array.isArray(settings?.agenda) ? settings.agenda : [];
 const testAgenda = agenda.find(
   (a: any) =>
@@ -41,12 +49,19 @@ const today = new Date().toLocaleDateString("id-ID", {
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Jadwal Tes - {userObj?.name}</title>
     <style>
+      @page {
+        size: A4;
+        margin: 20mm;
+      }
       @media print {
         .no-print {
           display: none;
         }
         body {
           padding: 0;
+          width: auto;
+          min-height: auto;
+          border: none;
         }
       }
       body {
@@ -54,21 +69,37 @@ const today = new Date().toLocaleDateString("id-ID", {
         line-height: 1.6;
         color: #000;
         padding: 40px;
-        max-width: 800px;
+        width: 210mm;
+        min-height: 297mm;
+        box-sizing: border-box;
         margin: auto;
+        border: 1px solid #eee;
+        background: #fff;
       }
       .header {
+        position: relative;
         text-align: center;
         border-bottom: 3px double #000;
         padding-bottom: 20px;
         margin-bottom: 30px;
       }
-      .header h1 {
+      .logo {
+        position: absolute;
+        left: 0;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 80px;
+        height: 80px;
+      }
+      .header-text {
+        margin: 0 80px;
+      }
+      .header-text h1 {
         margin: 0;
         font-size: 24px;
         text-transform: uppercase;
       }
-      .header p {
+      .header-text p {
         margin: 5px 0 0;
         font-size: 14px;
       }
@@ -101,11 +132,13 @@ const today = new Date().toLocaleDateString("id-ID", {
         padding-bottom: 10px;
       }
       .footer {
-        margin-top: 60px;
-        text-align: right;
+        margin-top: 20px;
+        float: right;
+        width: 350px;
+        text-align: left;
       }
       .signature {
-        margin-top: 80px;
+        margin-top: 10px;
         font-weight: bold;
       }
       .btn-print {
@@ -127,11 +160,14 @@ const today = new Date().toLocaleDateString("id-ID", {
     </div>
 
     <div class="header">
-      <h1>Pondok Pesantren Modern Al-Hikmah</h1>
-      <p>
-        Jl. KH. Hasyim Asyari No. 123, Desa Sejahtera, Kec. Mandiri, Kab. Berkah
-      </p>
-      <p>Email: info@alhikmah.pondok | Telp: (021) 12345678</p>
+      <img src="/logo.svg" alt="Logo" class="logo" />
+      <div class="header-text">
+        <h1>Pondok Pesantren Modern Al-Hikmah</h1>
+        <p>
+          Jl. KH. Hasyim Asyari No. 123, Desa Sejahtera, Kec. Mandiri, Kab. Berkah
+        </p>
+        <p>Email: info@alhikmah.pondok | Telp: (021) 12345678</p>
+      </div>
     </div>
 
     <div class="content">
@@ -192,9 +228,17 @@ const today = new Date().toLocaleDateString("id-ID", {
     </div>
 
     <div class="footer">
-      <p>Kotabumi, {today}</p>
-      <p>Panitia Penerimaan Santri Baru,</p>
-      <div class="signature">(...........................................)</div>
+      <p style="margin: 0; line-height: 1.2;">Kotabumi, {today}</p>
+      <p style="margin: 0; line-height: 1.2;">Panitia Penerimaan Santri Baru,</p>
+      <div class="signature">
+        {registration?.verifiedBy ? (
+          <img src={`https://api.qrserver.com/v1/create-qr-code/?size=100x100&data=Verified%20by%20${encodeURIComponent(adminName)}`} alt="QR Signature" style="margin: 10px 0; width: 80px; height: 80px;" />
+        ) : (
+          <div style="height: 60px;"></div>
+        )}
+        <div>{adminName}</div>
+      </div>
     </div>
+    <div style="clear: both;"></div>
   </body>
 </html>

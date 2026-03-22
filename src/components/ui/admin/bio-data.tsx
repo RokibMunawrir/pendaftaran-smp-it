@@ -69,6 +69,7 @@ export default function DetailPendaftar({ data, documents: initialDocuments = []
   const [openTolak, setOpenTolak] = useState(false);
   const [openVerifikasiPay, setOpenVerifikasiPay] = useState(false);
   const [openTolakPay, setOpenTolakPay] = useState(false);
+  const [openTerima, setOpenTerima] = useState(false);
   const [catatanTolak, setCatatanTolak] = useState("");
   const [notif, setNotif] = useState<{ msg: string; type: "success" | "error" } | null>(null);
 
@@ -166,7 +167,7 @@ export default function DetailPendaftar({ data, documents: initialDocuments = []
           <div className="flex flex-col sm:flex-row items-start gap-4">
             <div className="avatar">
               <div className="w-20 rounded-xl">
-                <img src={p.photo || `https://ui-avatars.com/api/?name=${encodeURIComponent(p.name)}&background=random&size=200`} alt={p.name} />
+                <img src={docs.find(d => d.type === "foto")?.fileUrl || p.photo || `https://ui-avatars.com/api/?name=${encodeURIComponent(p.name)}&background=random&size=200`} alt={p.name} className="object-cover w-full h-full" />
               </div>
             </div>
             <div className="flex-1">
@@ -191,18 +192,31 @@ export default function DetailPendaftar({ data, documents: initialDocuments = []
                   </svg>
                   Kembali
                 </a>
-                <button className="btn btn-success btn-sm" onClick={() => setOpenVerifikasi(true)}>
-                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="size-4">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
-                  </svg>
-                  Verifikasi
-                </button>
-                <button className="btn btn-error btn-sm" onClick={() => setOpenTolak(true)}>
-                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="size-4">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="m9.75 9.75 4.5 4.5m0-4.5-4.5 4.5M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
-                  </svg>
-                  Tolak
-                </button>
+                
+                {p.status === REGISTRATION_STATUS.TEST_INTERVIEW ? (
+                  <button className="btn btn-success btn-sm" onClick={() => setOpenTerima(true)}>
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="size-4">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+                    </svg>
+                    Terima Menjadi Siswa
+                  </button>
+                ) : p.status !== REGISTRATION_STATUS.ACCEPTED && p.status !== REGISTRATION_STATUS.REJECTED ? (
+                  <button className="btn btn-success btn-sm" onClick={() => setOpenVerifikasi(true)}>
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="size-4">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+                    </svg>
+                    Verifikasi
+                  </button>
+                ) : null}
+
+                {p.status !== REGISTRATION_STATUS.ACCEPTED && p.status !== REGISTRATION_STATUS.REJECTED && (
+                  <button className="btn btn-error btn-sm" onClick={() => setOpenTolak(true)}>
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="size-4">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="m9.75 9.75 4.5 4.5m0-4.5-4.5 4.5M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+                    </svg>
+                    Tolak
+                  </button>
+                )}
               </div>
             </div>
           </div>
@@ -269,71 +283,7 @@ export default function DetailPendaftar({ data, documents: initialDocuments = []
           </div>
         </div>
 
-        {/* Tab 4: Dokumen */}
-        <input type="radio" name="detail_tabs" className="tab" aria-label="Dokumen" />
-        <div className="tab-content bg-base-100 border-base-300 p-6">
-          <h3 className="font-semibold mb-4">Dokumen Pendaftaran</h3>
-          {docs.length === 0 ? (
-            <div className="alert alert-info">Belum ada dokumen yang diunggah.</div>
-          ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-              {docs.map((doc) => (
-                <div key={doc.id} className="card bg-base-100 shadow-sm border border-base-300 overflow-hidden">
-                  <div className="relative aspect-[3/4] bg-base-200 group">
-                    {doc.fileUrl.toLowerCase().endsWith(".pdf") ? (
-                      <div className="flex flex-col items-center justify-center h-full">
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="size-12 text-error mb-2">
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m.75 12 3 3m0 0 3-3m-3 3v-6m-1.5-9H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" />
-                        </svg>
-                        <span className="text-sm font-medium">PDF Document</span>
-                      </div>
-                    ) : (
-                      <img src={doc.fileUrl} alt={doc.type} className="w-full h-full object-cover" />
-                    )}
-                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
-                      <button className="btn btn-sm btn-circle btn-primary" onClick={() => setPreviewImage({ src: doc.fileUrl, title: docLabels[doc.type] || doc.type })}>
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="size-4">
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z" />
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
-                        </svg>
-                      </button>
-                      <a href={doc.fileUrl} target="_blank" className="btn btn-sm btn-circle btn-ghost bg-white/20 text-white">
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="size-4">
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3" />
-                        </svg>
-                      </a>
-                    </div>
-                  </div>
-                  <div className="p-4">
-                    <div className="flex items-center justify-between mb-2">
-                      <h4 className="font-bold text-sm uppercase">{docLabels[doc.type] || doc.type}</h4>
-                      <span className={`badge badge-xs ${getStatusBadge(doc.status)}`}>{doc.status}</span>
-                    </div>
-                    <p className="text-xs text-base-content/50 mb-4 font-mono">Uploaded: {new Date(doc.uploadDate).toLocaleString()}</p>
-                    <div className="flex gap-2">
-                      <button 
-                        className="btn btn-xs btn-success flex-1" 
-                        onClick={() => handleUpdateDocStatus(doc.id, "VERIFIED")}
-                        disabled={loadingDoc === doc.id || doc.status === "VERIFIED"}
-                      >
-                        {loadingDoc === doc.id ? <span className="loading loading-spinner loading-xs"></span> : "Verifikasi"}
-                      </button>
-                      <button 
-                        className="btn btn-xs btn-error flex-1" 
-                        onClick={() => handleUpdateDocStatus(doc.id, "REJECTED")}
-                        disabled={loadingDoc === doc.id || doc.status === "REJECTED"}
-                      >
-                        Tolak
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-
-        {/* Tab 5: Pembayaran */}
+        {/* Tab 4: Pembayaran */}
         <input type="radio" name="detail_tabs" className="tab" aria-label="Pembayaran" />
         <div className="tab-content bg-base-100 border-base-300 p-6">
           <h3 className="font-semibold mb-4">Bukti Pembayaran</h3>
@@ -417,6 +367,70 @@ export default function DetailPendaftar({ data, documents: initialDocuments = []
              </div>
           )}
         </div>
+
+        {/* Tab 5: Dokumen */}
+        <input type="radio" name="detail_tabs" className="tab" aria-label="Dokumen" />
+        <div className="tab-content bg-base-100 border-base-300 p-6">
+          <h3 className="font-semibold mb-4">Dokumen Pendaftaran</h3>
+          {docs.length === 0 ? (
+            <div className="alert alert-info">Belum ada dokumen yang diunggah.</div>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              {docs.map((doc) => (
+                <div key={doc.id} className="card bg-base-100 shadow-sm border border-base-300 overflow-hidden">
+                  <div className="relative aspect-[3/4] bg-base-200 group">
+                    {doc.fileUrl.toLowerCase().endsWith(".pdf") ? (
+                      <div className="flex flex-col items-center justify-center h-full">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="size-12 text-error mb-2">
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m.75 12 3 3m0 0 3-3m-3 3v-6m-1.5-9H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" />
+                        </svg>
+                        <span className="text-sm font-medium">PDF Document</span>
+                      </div>
+                    ) : (
+                      <img src={doc.fileUrl} alt={doc.type} className="w-full h-full object-cover" />
+                    )}
+                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+                      <button className="btn btn-sm btn-circle btn-primary" onClick={() => setPreviewImage({ src: doc.fileUrl, title: docLabels[doc.type] || doc.type })}>
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="size-4">
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z" />
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
+                        </svg>
+                      </button>
+                      <a href={doc.fileUrl} target="_blank" className="btn btn-sm btn-circle btn-ghost bg-white/20 text-white">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="size-4">
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3" />
+                        </svg>
+                      </a>
+                    </div>
+                  </div>
+                  <div className="p-4">
+                    <div className="flex items-center justify-between mb-2">
+                      <h4 className="font-bold text-sm uppercase">{docLabels[doc.type] || doc.type}</h4>
+                      <span className={`badge badge-xs ${getStatusBadge(doc.status)}`}>{doc.status}</span>
+                    </div>
+                    <p className="text-xs text-base-content/50 mb-4 font-mono">Uploaded: {new Date(doc.uploadDate).toLocaleString()}</p>
+                    <div className="flex gap-2">
+                      <button 
+                        className="btn btn-xs btn-success flex-1" 
+                        onClick={() => handleUpdateDocStatus(doc.id, "VERIFIED")}
+                        disabled={loadingDoc === doc.id || doc.status === "VERIFIED"}
+                      >
+                        {loadingDoc === doc.id ? <span className="loading loading-spinner loading-xs"></span> : "Verifikasi"}
+                      </button>
+                      <button 
+                        className="btn btn-xs btn-error flex-1" 
+                        onClick={() => handleUpdateDocStatus(doc.id, "REJECTED")}
+                        disabled={loadingDoc === doc.id || doc.status === "REJECTED"}
+                      >
+                        Tolak
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Modal preview dokumen */}
@@ -472,6 +486,19 @@ export default function DetailPendaftar({ data, documents: initialDocuments = []
         loading={loadingReg}
       >
         <p>Apakah Anda yakin ingin memverifikasi pendaftar ini? Status akan berlanjut ke tahap <b>Tes & Wawancara</b>.</p>
+      </Modal>
+
+      {/* Modal terima pendaftar */}
+      <Modal 
+        open={openTerima} 
+        onClose={() => setOpenTerima(false)} 
+        title="Terima Siswa" 
+        onConfirm={() => { handleUpdateRegistrationStatus(REGISTRATION_STATUS.ACCEPTED); setOpenTerima(false); }} 
+        variant="success" 
+        confirmLabel="Terima Siswa"
+        loading={loadingReg}
+      >
+        <p>Apakah Anda yakin ingin menerima pendaftar ini menjadi siswa? Pendaftar akan dapat mengunduh surat keterangan lulus.</p>
       </Modal>
 
       {/* Modal tolak pendaftar */}

@@ -1,9 +1,13 @@
 import db from "../index";
 import { announcements } from "../schema/announcement";
-import { eq } from "drizzle-orm";
+import { desc, eq } from "drizzle-orm";
 
 export const getAnnouncements = async () => {
-    return await db.select().from(announcements);
+    return await db.select().from(announcements).orderBy(desc(announcements.createdAt));
+};
+
+export const getPublishedAnnouncements = async () => {
+    return await db.select().from(announcements).where(eq(announcements.isPublished, true)).orderBy(desc(announcements.createdAt));
 };
 
 export const updateAnnouncement = async (id: string, data: any) => {

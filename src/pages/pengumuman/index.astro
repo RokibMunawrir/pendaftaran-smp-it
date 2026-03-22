@@ -3,9 +3,9 @@ import Layout from "../../layouts/Layout.astro";
 import NavbarPage from "../../components/ui/navbar-page"
 import Footer from "../../components/page/footer"
 import AnnouncementList from "../../components/page/announcement";
-import { getAnnouncements } from "../../db/queries/announcement";
+import { getPublishedAnnouncements } from "../../db/queries/announcement";
 
-const announcements = await getAnnouncements()
+const announcements = await getPublishedAnnouncements()
 ---
 
 <Layout title="Pengumuman" description="Pengumuman">
