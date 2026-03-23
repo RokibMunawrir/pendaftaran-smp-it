@@ -3,7 +3,7 @@ import Layout from "../../../layouts/Layout.astro";
 import Biodata from "../../../components/user/biodata";
 import { getProfileByUserId } from "../../../db/queries/profiles";
 import { getUser } from "../../../db/queries/user";
-import { getRegistrationByUserId, ensureRegistration } from "../../../db/queries/registrations";
+import { ensureRegistration } from "../../../db/queries/registrations";
 import { getRegistrationPaths } from "../../../db/queries/registration-settings";
 import type { TimelineStep } from "../../../components/ui/timeline-progress";
 

@@ -3,7 +3,7 @@ import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { admin } from "better-auth/plugins";
 import db from "../db";
 import { user, account, session, verification } from "../db/schema/auth-schema";
-
+import { eq } from "drizzle-orm";
 
 export const auth = betterAuth({
     baseURL: process.env.BASE_URL,
@@ -39,5 +39,12 @@ export const auth = betterAuth({
                 },
             },
         },
+        session: {
+            create: {
+                after: async (session) => {
+                    await db.update(user).set({ lastLoginAt: new Date() }).where(eq(user.id, session.userId));
+                }
+            }
+        }
     },
 });

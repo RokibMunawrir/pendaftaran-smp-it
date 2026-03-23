@@ -2,6 +2,7 @@ import type { APIRoute } from "astro";
 import { auth } from "../../../../lib/auth";
 import db from "../../../../db/index";
 import { user } from "../../../../db/schema/auth-schema";
+import { getUsers, getUser, createUser, updateUser, deleteUser } from "../../../../db/queries/user";
 import { count, eq, like, or } from "drizzle-orm";
 
 export const prerender = false;
@@ -23,19 +24,7 @@ export const GET: APIRoute = async ({ request }) => {
     const search = url.searchParams.get("search") || "";
     
     try {
-        let query = db.select().from(user);
-        
-        if (search) {
-            // @ts-ignore - Drizzle query builder type changes after .where() and cannot be easily assigned back to the initial 'query' variable
-            query = query.where(
-                or(
-                    like(user.name, `%${search}%`),
-                    like(user.email, `%${search}%`)
-                )
-            );
-        }
-
-        const allUsers = await query;
+        const allUsers = await getUsers(search);
         return new Response(JSON.stringify(allUsers), { status: 200 });
     } catch (error: any) {
         return new Response(JSON.stringify({ error: error.message }), { status: 500 });
@@ -60,8 +49,7 @@ export const POST: APIRoute = async ({ request }) => {
 
     try {
         // Use Better Auth Admin API to create user (handles hashing)
-        // @ts-expect-error - admin property is available at runtime but type inference might fail in some environments
-        const newUser = await auth.api.admin.createUser({
+        const newUser = await auth.api.createUser({
             body: {
                 email,
                 password,
@@ -100,7 +88,7 @@ export const PATCH: APIRoute = async ({ request }) => {
 
     try {
         // Cek admin protection
-        const targetUser = await db.select().from(user).where(eq(user.id, id)).limit(1);
+        const targetUser = await getUser(id);
         if (targetUser.length === 0) {
             return new Response(JSON.stringify({ error: "User not found" }), { status: 404 });
         }
@@ -122,8 +110,7 @@ export const PATCH: APIRoute = async ({ request }) => {
         
         // Use Better Auth for password if provided
         if (password) {
-            // @ts-expect-error - admin property is available at runtime but type inference might fail
-            await auth.api.admin.setPassword({
+            await auth.api.setUserPassword({
                 body: {
                     userId: id,
                     newPassword: password
@@ -132,7 +119,7 @@ export const PATCH: APIRoute = async ({ request }) => {
             });
         }
 
-        await db.update(user).set(updateData).where(eq(user.id, id));
+        await updateUser(id, updateData);
 
         return new Response(JSON.stringify({ success: true }), { status: 200 });
     } catch (error: any) {
@@ -158,7 +145,7 @@ export const DELETE: APIRoute = async ({ request }) => {
 
     try {
         // Cek admin protection
-        const targetUser = await db.select().from(user).where(eq(user.id, id)).limit(1);
+        const targetUser = await getUser(id);
         if (targetUser.length === 0) {
             return new Response(JSON.stringify({ error: "User not found" }), { status: 404 });
         }
@@ -179,7 +166,7 @@ export const DELETE: APIRoute = async ({ request }) => {
             }
         }
 
-        await db.delete(user).where(eq(user.id, id));
+        await deleteUser(id);
         return new Response(JSON.stringify({ success: true }), { status: 200 });
     } catch (error: any) {
         return new Response(JSON.stringify({ error: error.message }), { status: 500 });

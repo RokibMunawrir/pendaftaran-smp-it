@@ -16,6 +16,35 @@ import { roleBadge, getStatusBadge } from "../../../lib/utils/status";
 
 const entriesOptions = [5, 10, 25, 50];
 
+const formatLastLogin = (dateString: string | null | undefined) => {
+  if (!dateString) return "-";
+  
+  const date = new Date(dateString);
+  const now = new Date();
+  const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000);
+
+  if (diffInSeconds < 300) {
+    return <span className="text-success font-semibold">Aktif</span>;
+  }
+  
+  const minutes = Math.floor(diffInSeconds / 60);
+  if (minutes < 60) return `${minutes} menit lalu`;
+  
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) return `${hours} jam lalu`;
+  
+  const days = Math.floor(hours / 24);
+  if (days < 7) return `${days} hari lalu`;
+  
+  const weeks = Math.floor(days / 7);
+  if (weeks < 4) return `${weeks} minggu lalu`;
+  
+  const months = Math.floor(days / 30);
+  if (months < 12) return `${months} bulan lalu`;
+  
+  return date.toLocaleDateString("id-ID", { year: 'numeric', month: 'short', day: 'numeric' });
+};
+
 // Form kosong default
 const emptyForm = { name: "", email: "", password: "", confirmPassword: "", role: "operator", status: "ACTIVE" };
 
@@ -194,7 +223,7 @@ export default function UsersContent({ currentUserId }: { currentUserId?: string
   };
 
   // Form fields component
-  const UserForm = ({ isEdit = false }) => (
+  const renderUserForm = (isEdit = false) => (
     <div className="flex flex-col gap-3">
       <div className="form-control w-full flex flex-col items-start">
         <label className="label py-1"><span className="label-text font-semibold">Nama</span></label>
@@ -321,8 +350,8 @@ export default function UsersContent({ currentUserId }: { currentUserId?: string
                       </td>
                       <td><span className={`badge badge-sm font-semibold ${roleBadge[u.role] || "badge-ghost"}`}>{u.role}</span></td>
                       <td><span className={`badge badge-sm font-semibold ${getStatusBadge(u.status)}`}>{u.status}</span></td>
-                      <td className="text-xs opacity-60">
-                         {u.lastLoginAt ? new Date(u.lastLoginAt).toLocaleString("id-ID") : "-"}
+                      <td className="text-xs opacity-100">
+                         {formatLastLogin(u.lastLoginAt)}
                       </td>
                       <td className="text-center">
                         <div className="flex justify-center gap-1">
@@ -363,12 +392,12 @@ export default function UsersContent({ currentUserId }: { currentUserId?: string
 
       {/* Modal Tambah User */}
       <Modal open={openAdd} onClose={() => setOpenAdd(false)} title="Tambah User Baru" variant="info" confirmLabel="Simpan" onConfirm={handleAdd}>
-        <UserForm />
+        {renderUserForm()}
       </Modal>
 
       {/* Modal Edit User */}
       <Modal open={openEdit} onClose={() => { setOpenEdit(false); setSelectedUser(null); }} title="Edit User" variant="warning" confirmLabel="Perbarui" onConfirm={handleEdit}>
-        <UserForm isEdit />
+        {renderUserForm(true)}
       </Modal>
 
       {/* Modal Hapus User */}
