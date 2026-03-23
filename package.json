@@ -13,8 +13,8 @@
   "license": "ISC",
   "type": "module",
   "dependencies": {
-    "@astrojs/react": "^5.0.0",
-    "@astrojs/vercel": "^8.0.4",
+    "@astrojs/react": "^5.0.1",
+    "@astrojs/vercel": "^10.0.2",
     "@paralleldrive/cuid2": "^3.3.0",
     "@tailwindcss/vite": "^4.2.1",
     "@types/react": "^19.2.14",
@@ -33,7 +33,7 @@
   },
   "devDependencies": {
     "@types/node": "^25.4.0",
-    "drizzle-kit": "^0.18.1",
+    "drizzle-kit": "^0.31.10",
     "tsx": "^4.21.0",
     "typescript": "^5.9.3"
   }
