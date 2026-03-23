@@ -11,7 +11,7 @@
   "keywords": [],
   "author": "Rokib",
   "license": "ISC",
-  "type": "commonjs",
+  "type": "module",
   "dependencies": {
     "@astrojs/react": "^5.0.0",
     "@astrojs/vercel": "^10.0.2",
