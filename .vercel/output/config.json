@@ -1,0 +1,188 @@
+{
+	"version": 3,
+	"routes": [
+		{
+			"handle": "filesystem"
+		},
+		{
+			"src": "^/_astro/(.*)$",
+			"headers": {
+				"cache-control": "public, max-age=31536000, immutable"
+			},
+			"continue": true
+		},
+		{
+			"src": "^/_server-islands/([^/]+?)/?$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/_image/?$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/admin/cost/?$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/admin/dashboard/?$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/admin/list/detail/([^/]+?)/?$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/admin/list/?$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/admin/pengumuman/?$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/admin/setting/pendaftaran/?$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/admin/setting/?$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/admin/test-schedule/?$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/admin/users/?$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/api/admin/announcement/?$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/api/admin/documents/?$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/api/admin/payment/?$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/api/admin/profiles/?$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/api/admin/registration/?$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/api/admin/setting/pembayaran/?$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/api/admin/setting/pendaftaran/?$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/api/admin/setting/tes-wawancara/?$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/api/admin/setting/?$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/api/admin/users/?$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/api/auth(?:/(.*?))?/?$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/api/user/announcement/latest-timestamp/?$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/api/user/announcement/?$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/api/user/document/?$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/api/user/payment/?$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/api/user/profile/?$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/forgot-password/?$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/login/?$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/pengumuman/?$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/register/?$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/user/announcement/?$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/user/biodata/?$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/user/dashboard/?$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/user/document/?$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/user/payment/?$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/user/print/acceptance/?$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/user/print/schedule/?$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/user/result/?$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/user/test/?$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/404/?$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/.*$",
+			"dest": "_render",
+			"status": 404
+		}
+	]
+}

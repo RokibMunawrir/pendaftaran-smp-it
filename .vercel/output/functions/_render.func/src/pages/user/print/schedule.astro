@@ -1,0 +1,244 @@
+---
+import { getRegistrationByUserId } from "../../../db/queries/registrations";
+import { getSettings } from "../../../db/queries/settings";
+import { getUser } from "../../../db/queries/user";
+import { auth } from "../../../lib/auth";
+
+const session = await auth.api.getSession({
+  headers: Astro.request.headers,
+});
+
+if (!session) {
+  return Astro.redirect("/login");
+}
+
+const userId = session.user.id;
+const userData = await getUser(userId);
+const userObj = userData[0];
+const registration = await getRegistrationByUserId(userId);
+const allSettings = await getSettings();
+const settings = allSettings[0];
+
+let adminName = "Panitia Penerimaan Santri Baru";
+if (registration?.verifiedBy) {
+  const adminData = await getUser(registration.verifiedBy);
+  if (adminData && adminData.length > 0 && adminData[0].name) {
+    adminName = adminData[0].name;
+  }
+}
+
+const agenda = Array.isArray(settings?.agenda) ? settings.agenda : [];
+const testAgenda = agenda.find(
+  (a: any) =>
+    a.title.toLowerCase().includes("tes") ||
+    a.title.toLowerCase().includes("wawancara") ||
+    a.title.toLowerCase().includes("seleksi"),
+);
+
+const today = new Date().toLocaleDateString("id-ID", {
+  day: "2-digit",
+  month: "long",
+  year: "numeric",
+});
+---
+
+<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Jadwal Tes - {userObj?.name}</title>
+    <style>
+      @page {
+        size: A4;
+        margin: 20mm;
+      }
+      @media print {
+        .no-print {
+          display: none;
+        }
+        body {
+          padding: 0;
+          width: auto;
+          min-height: auto;
+          border: none;
+        }
+      }
+      body {
+        font-family: "Times New Roman", Times, serif;
+        line-height: 1.6;
+        color: #000;
+        padding: 40px;
+        width: 210mm;
+        min-height: 297mm;
+        box-sizing: border-box;
+        margin: auto;
+        border: 1px solid #eee;
+        background: #fff;
+      }
+      .header {
+        position: relative;
+        text-align: center;
+        border-bottom: 3px double #000;
+        padding-bottom: 20px;
+        margin-bottom: 30px;
+      }
+      .logo {
+        position: absolute;
+        left: 0;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 90px;
+        height: 90px;
+      }
+      .header-text {
+        margin: 0 80px;
+      }
+      .header-text h1 {
+        margin: 0;
+        font-size: 24px;
+        text-transform: uppercase;
+      }
+      .header-text p {
+        margin: 5px 0 0;
+        font-size: 14px;
+      }
+      .content h2 {
+        text-align: center;
+        text-decoration: underline;
+        margin-bottom: 40px;
+      }
+      .info-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-bottom: 30px;
+      }
+      .info-table td {
+        padding: 8px 0;
+        vertical-align: top;
+      }
+      .info-table td:first-child {
+        width: 200px;
+        font-weight: bold;
+      }
+      .schedule-box {
+        border: 1px solid #000;
+        padding: 20px;
+        margin-bottom: 40px;
+      }
+      .schedule-box h3 {
+        margin-top: 0;
+        border-bottom: 1px solid #000;
+        padding-bottom: 10px;
+      }
+      .footer {
+        margin-top: 20px;
+        float: right;
+        width: 350px;
+        text-align: left;
+      }
+      .signature {
+        margin-top: 10px;
+        font-weight: bold;
+      }
+      .btn-print {
+        background: #000;
+        color: #fff;
+        padding: 10px 20px;
+        border: none;
+        cursor: pointer;
+        margin-bottom: 20px;
+        border-radius: 5px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="no-print" style="text-align: right;">
+      <button class="btn-print" onclick="window.print()"
+        >Cetak Halaman (PDF)</button
+      >
+    </div>
+
+    <div class="header">
+      <img src="/logo.svg" alt="Logo" class="logo" />
+      <div class="header-text">
+        <h1>SMP IT Darussalam Luwuk</h1>
+        <p>
+          Jl. KH. Hasyim Asyari No. 123, Desa Sejahtera, Kec. Mandiri, Kab. Berkah
+        </p>
+        <p>Email: info@alhikmah.pondok | Telp: (021) 12345678</p>
+      </div>
+    </div>
+
+    <div class="content">
+      <h2>KARTU JADWAL TES & WAWANCARA</h2>
+
+      <table class="info-table">
+        <tr>
+          <td>Nomor Pendaftaran</td>
+          <td>: {registration?.registrationNumber || "-"}</td>
+        </tr>
+        <tr>
+          <td>Nama Calon Santri</td>
+          <td>: {userObj?.name}</td>
+        </tr>
+        <tr>
+          <td>Program / Jalur</td>
+          <td>: {registration?.program || "-"}</td>
+        </tr>
+      </table>
+
+      <div class="schedule-box">
+        <h3>Detail Pelaksanaan Seleksi</h3>
+        <table class="info-table" style="margin-bottom: 0;">
+          <tr>
+            <td>Materi / Agenda</td>
+            <td
+              >: {testAgenda ? testAgenda.title : "Tes & Wawancara Offline"}</td
+            >
+          </tr>
+          <tr>
+            <td>Hari / Tanggal</td>
+            <td
+              >: {
+                testAgenda ? testAgenda.date : "Akan segera diinformasikan"
+              }</td
+            >
+          </tr>
+          <tr>
+            <td>Waktu</td>
+            <td>: 08:00 WIB - Selesai</td>
+          </tr>
+          <tr>
+            <td>Tempat</td>
+            <td>: Aula Utama SMP IT Darussalam Luwuk</td>
+          </tr>
+        </table>
+      </div>
+
+      <div style="font-size: 14px;">
+        <strong>Catatan Penting:</strong>
+        <ol>
+          <li>Peserta wajib hadir 30 menit sebelum acara dimulai.</li>
+          <li>Membawa kartu pendaftaran ini.</li>
+          <li>Membawa alat tulis (Pensil 2B, Penghapus, Papan Dada).</li>
+          <li>Berpakaian sopan dan rapi (Putih Abu-abu / Seragam asal).</li>
+        </ol>
+      </div>
+    </div>
+
+    <div class="footer">
+      <p style="margin: 0; line-height: 1.2;">Luwuk, {today}</p>
+      <p style="margin: 0; line-height: 1.2;">Panitia,</p>
+      <div class="signature">
+        {registration?.verifiedBy ? (
+          <img src={`https://api.qrserver.com/v1/create-qr-code/?size=100x100&data=Verified%20by%20${encodeURIComponent(adminName)}`} alt="QR Signature" style="margin: 10px 0; width: 80px; height: 80px;" />
+        ) : (
+          <div style="height: 60px;"></div>
+        )}
+        <div>{adminName}</div>
+      </div>
+    </div>
+    <div style="clear: both;"></div>
+  </body>
+</html>

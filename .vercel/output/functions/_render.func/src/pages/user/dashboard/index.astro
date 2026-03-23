@@ -1,0 +1,58 @@
+---
+import Layout from "../../../layouts/Layout.astro";
+import UserDashboard from "../../../components/user/dashboard";
+import { getRegistrationByUserId, ensureRegistration } from "../../../db/queries/registrations";
+import { getPublishedAnnouncements } from "../../../db/queries/announcement";
+import { getUser } from "../../../db/queries/user";
+import { auth } from "../../../lib/auth";
+
+export const prerender = false;
+
+import { REGISTRATION_STATUS } from "../../../lib/utils/status";
+
+const session = await auth.api.getSession({
+  headers: Astro.request.headers,
+});
+
+if (!session) {
+  return Astro.redirect("/login");
+}
+
+const userId = session.user.id;
+
+const userData = await getUser(userId);
+const user = userData[0];
+
+const registration = await ensureRegistration(userId);
+const announcementsData = await getPublishedAnnouncements();
+
+const dashboardUser = {
+  name: user?.name || "User",
+  registrationNumber: registration?.registrationNumber || null,
+  status: registration?.status || REGISTRATION_STATUS.REGISTERED,
+  pathway: registration?.program || "Reguler",
+  program: registration?.program || "Tahfidz Al-Quran",
+  registrationDate: registration?.registrationDate
+    ? new Intl.DateTimeFormat("id-ID", {
+        day: "numeric",
+        month: "long",
+        year: "numeric",
+      }).format(new Date(registration.registrationDate))
+    : null,
+};
+
+const announcements = announcementsData.map((a) => ({
+  id: a.id,
+  title: a.title,
+  content: a.content,
+  createdAt: a.createdAt,
+}));
+---
+
+<Layout title="Dashboard" description="Dashboard">
+  <UserDashboard
+    client:only="react"
+    user={dashboardUser}
+    announcements={announcements}
+  />
+</Layout>
