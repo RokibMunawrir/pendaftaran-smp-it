@@ -8,7 +8,7 @@ import { getPublishedAnnouncements } from "../../db/queries/announcement";
 const announcements = await getPublishedAnnouncements()
 ---
 
-<Layout title="Pengumuman" description="Pengumuman">
+<Layout title="Pengumuman | PPDB Online SMP IT DARUSSALAM LUWUK" description="Pengumuman">
   <NavbarPage client:only="react" />
   <AnnouncementList client:only="react" announcements={announcements}/>
   <Footer client:only="react" />

@@ -20,6 +20,6 @@ const documents = registration ? await getDocumentsByRegistrationId(registration
 const payment = registration ? await getPaymentByRegistrationId(registration.id) : null;
 ---
 
-<Layout title="Detail Pendaftar" description="Detail Pendaftar">
+<Layout title="Detail Pendaftar | PPDB Online SMP IT DARUSSALAM LUWUK" description="Detail Pendaftar">
   <DetailPendaftar client:load data={registration} documents={documents} payment={payment} />
 </Layout>
