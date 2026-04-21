@@ -1,0 +1,21 @@
+---
+import Layout from "../../../../layouts/Layout.astro";
+import AddStudentForm from "../../../../components/ui/admin/add";
+import { auth } from "../../../../lib/auth";
+import { getRegistrationPaths } from "../../../../db/queries/registration-settings";
+
+const session = await auth.api.getSession({
+  headers: Astro.request.headers,
+});
+
+if (!session || (session.user.role !== "admin" && session.user.role !== "operator")) {
+  return Astro.redirect("/login");
+}
+
+const paths = await getRegistrationPaths(true);
+const programs = paths.map(p => ({ id: p.id, name: p.name }));
+---
+
+<Layout title="Tambah Siswa Manual | PPDB Online" description="Tambah Siswa Baru">
+  <AddStudentForm client:only="react" programs={programs} />
+</Layout>

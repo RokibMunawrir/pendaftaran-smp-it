@@ -57,9 +57,17 @@ export default function ListContent({ data }: { data: Pendaftar[] }) {
     <Panel title="List Pendaftar">
       <div className="card bg-base-100 shadow-sm border border-base-300">
         <div className="card-body">
-          <div className="flex items-center justify-between">
-            <h3 className="card-title text-base">Daftar Pendaftar Santri</h3>
-            <span className="text-sm text-base-content/50">{data.length} pendaftar</span>
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div>
+              <h3 className="card-title text-lg">Daftar Pendaftar Santri</h3>
+              <span className="text-sm text-base-content/50">{data.length} pendaftar</span>
+            </div>
+            <a href="/admin/list/add" className="btn btn-primary btn-sm rounded-xl text-primary-content">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="w-4 h-4">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+              </svg>
+              Tambah Manual
+            </a>
           </div>
 
           {/* Search & Entries per page */}
