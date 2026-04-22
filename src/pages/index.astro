@@ -90,7 +90,14 @@ try {
 }
 ---
 
-<Layout title="Home" description="Home">
+<Layout
+  title="SMP IT Darussalam Luwuk Banggai"
+  description="SMP IT Darussalam Luwuk Banggai - Pendaftaran Santri Online"
+  ogTitle={webData?.siteName}
+  ogDescription={webData?.hero?.subtitle}
+  ogImage={webData?.hero?.backgroundImage}
+  ogType="website"
+>
   <Navbar
     client:only="react"
     siteName={webData?.siteName}

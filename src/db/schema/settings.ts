@@ -1,4 +1,4 @@
-import { mysqlTable, varchar, text, datetime, json } from "drizzle-orm/mysql-core"
+import { mysqlTable, varchar, text, datetime, json, longtext } from "drizzle-orm/mysql-core"
 import { sql } from "drizzle-orm"
 
 export const settings = mysqlTable("settings", {
@@ -13,13 +13,13 @@ export const settings = mysqlTable("settings", {
 
   siteName: varchar("siteName", { length: 191 }),
 
-  logo: text("logo"),
+  logo: longtext("logo"),
 
   heroTitle: varchar("heroTitle", { length: 191 }),
 
   heroSubtitle: text("heroSubtitle"),
 
-  heroImage: text("heroImage"),
+  heroImage: longtext("heroImage"),
 
   heroCtaText: varchar("heroCtaText", { length: 191 }),
 
@@ -29,7 +29,7 @@ export const settings = mysqlTable("settings", {
 
   aboutDescription: text("aboutDescription"),
 
-  aboutImage: text("aboutImage"),
+  aboutImage: longtext("aboutImage"),
 
   agenda: json("agenda"),
 
